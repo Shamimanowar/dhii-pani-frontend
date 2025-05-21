@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -110,13 +111,13 @@ export default function PageHeader({ title }) {
       </div>
       <nav className="ph-nav">
         {navLinks.map(link => (
-          <a
+          <Link
             key={link.href}
             href={link.href}
             className={`ph-nav-link${currentPath === link.href ? ' active' : ''}`}
           >
             {link.label}
-          </a>
+          </Link>
         ))}
       </nav>
     </header>

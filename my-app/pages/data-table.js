@@ -6,6 +6,28 @@ const PAGE_SIZE = 10;
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
 
+// Add your column limits here:
+const COLUMN_LIMITS = {
+  temp: { min: 25, max: 30 },
+  bod: { max: 30 },
+  cod: { max: 200 },
+  ph: { min: 6, max: 9 },
+  tds: { max: 2100 },
+  do: { min: 4.5, max: 8 },
+  color: { max: 150 }, // Color
+  tss: { max: 100 }
+};
+
+// Helper to check if a value is out of range
+function isOutOfRange(key, value) {
+  const lim = COLUMN_LIMITS[key];
+  if (!lim || value === undefined || value === null || value === '') return false;
+  if (typeof value === 'string' && value.trim() === '') return false;
+  if (lim.min !== undefined && Number(value) < lim.min) return true;
+  if (lim.max !== undefined && Number(value) > lim.max) return true;
+  return false;
+}
+
 export default function DataTable() {
   const router = useRouter();
   const [page, setPage] = useState(1);
@@ -152,7 +174,17 @@ export default function DataTable() {
           display: inline-block;
         }
         .export-dropdown-btn {
-          ${Object.entries(headerBtnStyle).map(([k, v]) => `${k}:${typeof v === 'number' ? v + 'px' : v};`).join('')}
+          font-weight: 700;
+          font-size: 18px;
+          border: 2px solid #6c63ff;
+          background: #fff;
+          color: #6c63ff;
+          padding: 8px 22px;
+          border-radius: 8px;
+          cursor: pointer;
+          box-shadow: 0 2px 8px #6c63ff10;
+          transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+          min-width: 140px;
         }
         .export-dropdown-content {
           display: none;
@@ -256,7 +288,7 @@ export default function DataTable() {
                 <th style={thStyle}>PH</th>
                 <th style={thStyle}>TDS</th>
                 <th style={thStyle}>DO</th>
-                <th style={thStyle}>CHROMA</th>
+                <th style={thStyle}>COLOR</th>
                 <th style={thStyle}>TSS</th>
               </tr>
             </thead>
@@ -273,14 +305,54 @@ export default function DataTable() {
                   onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#f8f9fc' : '#fff'}
                 >
                   <td style={tdStyle}>{row.time}</td>
-                  <td style={tdStyle}>{row.temp}</td>
-                  <td style={tdStyle}>{row.bod}</td>
-                  <td style={tdStyle}>{row.cod}</td>
-                  <td style={tdStyle}>{row.ph}</td>
-                  <td style={{ ...tdStyle, background: '#ffeaea', fontWeight: 600 }}>{row.tds}</td>
-                  <td style={tdStyle}>{row.do}</td>
-                  <td style={tdStyle}>{row.chroma}</td>
-                  <td style={tdStyle}>{row.tss}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('temp', row.temp) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.temp}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('bod', row.bod) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.bod}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('cod', row.cod) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.cod}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('ph', row.ph) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.ph}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('tds', row.tds) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.tds}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('do', row.do) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.do}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('Color', row.color) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.color}</td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      background: isOutOfRange('tss', row.tss) ? '#ffeaea' : '#fff'
+                    }}
+                  >{row.tss}</td>
                 </tr>
               ))}
             </tbody>
