@@ -2,6 +2,7 @@ import PageHeader from "../components/PageHeader";
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import tableData from "../data/tableData";
+import ControlBar from "../components/ControlBar";
 
 // Modern color palette
 const COLORS = [
@@ -133,6 +134,11 @@ function CustomTooltip({ active, payload, stats, col }) {
   }
   return null;
 }
+
+const COLUMN_LABELS = Object.keys(tableData[0] || {}).filter(k => k !== "time").reduce((acc, k) => {
+  acc[k] = k.toUpperCase();
+  return acc;
+}, {});
 
 export default function SummaryDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -274,142 +280,22 @@ export default function SummaryDashboard() {
           <PageHeader title="Summary Dashboard" />
         </div>
       </div>
-      {/* /* Responsive grid for charts/cards */}
-        {mounted && (
-          <>
-            <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 16,
-            alignItems: "center",
-            justifyContent: "flex-end",
-            padding: "12px 0 10px 0",
-            position: "sticky",
-            top: 0,
-            background: "#fff",
-            zIndex: 101,
-            boxShadow: "0 2px 12px #6c63ff08",
-          }}
-            >
-          {/* Export Dropdown */}
-            <div style={{ position: "relative" }}>
-              <button
-                style={{ ...headerBtnStyle, minWidth: 110 }}
-                onClick={() => setExportOpen((v) => !v)}
-              >
-                Export ▼
-              </button>
-              {exportOpen && (
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    background: "#fff",
-                    minWidth: 140,
-                    boxShadow: "0 4px 16px #6c63ff22",
-                    borderRadius: 10,
-                    zIndex: 100,
-                    marginTop: 8,
-                    border: "1px solid #ececff",
-                  }}
-                >
-                  <button
-                    style={exportDropdownItemStyle}
-                    onClick={() => {
-                      exportCSV();
-                      setExportOpen(false);
-                    }}
-                  >
-                    Export as CSV
-                  </button>
-                  <button
-                    style={exportDropdownItemStyle}
-                    onClick={() => {
-                      exportJSON();
-                      setExportOpen(false);
-                    }}
-                  >
-                    Export as JSON
-                  </button>
-                </div>
-              )}
-            </div>
-            {/* Date Range */}
-            <label style={{ fontWeight: 600, color: "#6c63ff", fontSize: 15 }}>
-              Date:
-            </label>
-            <input
-              type="datetime-local"
-              name="from"
-              value={dateRange.from}
-              min={
-                fullRange[0]
-                  ? new Date(fullRange[0]).toISOString().slice(0, 16)
-                  : ""
-              }
-              max={dateRange.to}
-              onChange={handleDateChange}
-              style={dateInputStyle}
-            />
-            <span style={{ color: "#6c63ff", fontWeight: 600 }}>to</span>
-            <input
-              type="datetime-local"
-              name="to"
-              value={dateRange.to}
-              min={dateRange.from}
-              max={
-                fullRange[1]
-                  ? new Date(fullRange[1]).toISOString().slice(0, 16)
-                  : ""
-              }
-              onChange={handleDateChange}
-              style={dateInputStyle}
-            />
-            {/* Filter Metric Dropdown */}
-            <select
-              value={filterColumn}
-              onChange={(e) => setFilterColumn(e.target.value)}
-              style={{
-                border: "1.5px solid #ececff",
-                borderRadius: 8,
-                padding: "7px 14px",
-                fontSize: 15,
-                color: "#4f3ca7",
-                background: "#f7f8fa",
-                outline: "none",
-                minWidth: 140,
-                transition: "border 0.2s",
-              }}
-            >
-              <option value="">Show All</option>
-              {Object.keys(tableData[0] || {})
-                .filter((key) => key !== "time")
-                .map((key) => (
-                  <option key={key} value={key}>
-                    {key.toUpperCase()}
-                  </option>
-                ))}
-            </select>
-            {/* Refresh */}
-            <button
-              style={{ ...headerBtnStyle, width: 130, height: 36 }}
-              onClick={handleRefresh}
-            >
-              {loading ? (
-                <span
-                  className="dt-refresh-anim"
-                  style={{ display: "inline-block" }}
-                >
-                  ⟳
-                </span>
-              ) : (
-                <>
-                  Refresh <span style={{ fontSize: 22 }}>▼</span>
-                </>
-              )}
-            </button>
-          </div>
+      {mounted && (
+        <>
+          <ControlBar
+            exportOpen={exportOpen}
+            setExportOpen={setExportOpen}
+            exportCSV={exportCSV}
+            exportJSON={exportJSON}
+            dateRange={dateRange}
+            fullRange={fullRange}
+            handleDateChange={handleDateChange}
+            filterMetric={filterColumn}
+            setFilterMetric={setFilterColumn}
+            COLUMN_LABELS={COLUMN_LABELS}
+            handleRefresh={handleRefresh}
+            loading={loading}
+          />
           <div
             className="responsive-grid"
             style={{

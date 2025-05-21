@@ -5,6 +5,7 @@ import { isOutOfRange } from '../utils/columnLimits';
 import { exportCSV, exportExcel } from '../utils/exportUtils';
 import useGoogleSheetData from '../hooks/useGoogleSheetData';
 import DataTableBody from '../components/DataTableBody';
+import ControlBar from '../components/ControlBar';
 
 const PAGE_SIZE = 20;
 const GOOGLE_SHEET_CSV_URL =
@@ -29,19 +30,21 @@ export default function DataTable() {
     if (page > TOTAL_PAGES) setPage(TOTAL_PAGES || 1);
   }, [data, TOTAL_PAGES, page]);
 
-  function handleDateRange() {
-    alert('Date range picker would open here.');
-  }
-
-  function handleExportOption(type) {
-    setExportOpen(false);
-    if (type === 'csv') exportCSV(data);
-    if (type === 'excel') exportExcel(data);
-  }
-
-  function handlePageChange(newPage) {
-    setPage(newPage);
-  }
+  // Dummy props for ControlBar (no filter/date for this table)
+  const controlBarProps = {
+    exportOpen,
+    setExportOpen,
+    exportCSV: () => exportCSV(data),
+    exportJSON: undefined, // Not used here
+    dateRange: { from: '', to: '' },
+    fullRange: [0, 0],
+    handleDateChange: () => {},
+    filterMetric: '',
+    setFilterMetric: () => {},
+    COLUMN_LABELS: {},
+    handleRefresh,
+    loading: refreshing
+  };
 
   const pagedData = Array.isArray(data) ? data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : [];
 
@@ -80,98 +83,9 @@ export default function DataTable() {
         @keyframes dtSpin {
           100% { transform: rotate(360deg);}
         }
-        .export-dropdown {
-          position: relative;
-          display: inline-block;
-        }
-        .export-dropdown-btn {
-          font-weight: 700;
-          font-size: 18px;
-          border: 2px solid #6c63ff;
-          background: #fff;
-          color: #6c63ff;
-          padding: 8px 22px;
-          border-radius: 8px;
-          cursor: pointer;
-          box-shadow: 0 2px 8px #6c63ff10;
-          transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
-          min-width: 140px;
-        }
-        .export-dropdown-content {
-          display: none;
-          position: absolute;
-          right: 0;
-          background: #fff;
-          min-width: 160px;
-          box-shadow: 0 4px 16px #6c63ff22;
-          border-radius: 8px;
-          z-index: 100;
-          margin-top: 8px;
-        }
-        .export-dropdown.open .export-dropdown-content {
-          display: block;
-        }
-        .export-dropdown-item {
-          color: #6c63ff;
-          padding: 12px 18px;
-          text-decoration: none;
-          display: block;
-          font-weight: 600;
-          font-size: 16px;
-          background: none;
-          border: none;
-          width: 100%;
-          text-align: left;
-          cursor: pointer;
-          border-radius: 8px;
-          transition: background 0.2s;
-        }
-        .export-dropdown-item:hover {
-          background: #f3f3ff;
-        }
       `}</style>
       <PageHeader title="Data Table" />
-      {/* Export Options Dropdown */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        marginRight: 80,
-        marginTop: -60,
-        marginBottom: 8,
-        gap: 0
-      }}>
-        <div className={`export-dropdown${exportOpen ? ' open' : ''}`}>
-          <button
-            className="export-dropdown-btn"
-            onClick={() => setExportOpen(v => !v)}
-            style={{ ...headerBtnStyle, minWidth: 140 }}
-          >
-            Export ▼
-          </button>
-          <div className="export-dropdown-content">
-            <button className="export-dropdown-item" onClick={() => handleExportOption('csv')}>Export as CSV</button>
-            <button className="export-dropdown-item" onClick={() => handleExportOption('excel')}>Export as Excel</button>
-          </div>
-        </div>
-      </div>
-      {/* Header Buttons */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'flex-start',
-        gap: 16,
-        marginRight: 80,
-        marginTop: 0
-      }}>
-        <button style={headerBtnStyle} onClick={handleDateRange}>Date Range <span style={{ fontSize: 22 }}>▼</span></button>
-        <button style={headerBtnStyle} onClick={handleRefresh}>
-          {refreshing
-            ? <span className="dt-refresh-anim" style={{ display: 'inline-block' }}>⟳</span>
-            : <>Refresh <span style={{ fontSize: 22 }}>▼</span></>
-          }
-        </button>
-      </div>
+      <ControlBar {...controlBarProps} />
       {/* Table */}
       <div style={{
         display: 'flex',

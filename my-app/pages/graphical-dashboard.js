@@ -16,6 +16,7 @@ import {
   Bar,
   ResponsiveContainer,
 } from "recharts";
+import ControlBar from "../components/ControlBar";
 
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
@@ -369,176 +370,20 @@ export default function GraphicalDashboard() {
     >
       <PageHeader title="Graphical Dashboard" />
       {/* Modern controls bar */}
-
-      {/*  */}
-
-      <div
-        style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 16,
-            alignItems: "center",
-            justifyContent: "flex-end",
-            padding: "12px 0 10px 0",
-          }}
-        >
-          {/* Export Dropdown */}
-          <div style={{ position: "relative" }}>
-            <button
-              style={{ ...headerBtnStyle, minWidth: 110 }}
-              onClick={() => setExportOpen((v) => !v)}
-            >
-              Export ▼
-            </button>
-            {exportOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  background: "#fff",
-                  minWidth: 140,
-                  boxShadow: "0 4px 16px #6c63ff22",
-                  borderRadius: 10,
-                  zIndex: 100,
-                  marginTop: 8,
-                  border: "1px solid #ececff",
-                }}
-              >
-                <button
-                  style={exportDropdownItemStyle}
-                  onClick={() => {
-                    exportCSV();
-                    setExportOpen(false);
-                  }}
-                >
-                  Export as CSV
-                </button>
-                <button
-                  style={exportDropdownItemStyle}
-                  onClick={() => {
-                    exportJSON();
-                    setExportOpen(false);
-                  }}
-                >
-                  Export as JSON
-                </button>
-              </div>
-            )}
-          </div>
-          {/* Date Range */}
-          <label style={{ fontWeight: 600, color: "#6c63ff", fontSize: 15 }}>
-            Date:
-          </label>
-          <input
-            type="datetime-local"
-            name="from"
-            value={dateRange.from}
-            min={
-              fullRange[0]
-                ? new Date(fullRange[0]).toISOString().slice(0, 16)
-                : ""
-            }
-            max={dateRange.to}
-            onChange={handleDateChange}
-            style={dateInputStyle}
-          />
-          <span style={{ color: "#6c63ff", fontWeight: 600 }}>to</span>
-          <input
-            type="datetime-local"
-            name="to"
-            value={dateRange.to}
-            min={dateRange.from}
-            max={
-              fullRange[1]
-                ? new Date(fullRange[1]).toISOString().slice(0, 16)
-                : ""
-            }
-            onChange={handleDateChange}
-            style={dateInputStyle}
-          />
-          {/* Filter Metric Dropdown */}
-          <select
-            value={filterMetric}
-            onChange={(e) => setFilterMetric(e.target.value)}
-            style={{
-              border: "1.5px solid #ececff",
-              borderRadius: 8,
-              padding: "7px 14px",
-              fontSize: 15,
-              color: "#4f3ca7",
-              background: "#f7f8fa",
-              outline: "none",
-              minWidth: 140,
-              transition: "border 0.2s",
-            }}
-          >
-            <option value="">Show All</option>
-            {Object.entries(COLUMN_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-          {/* Refresh */}
-          <button
-            style={{ ...headerBtnStyle, width: 130, height: 36 }}
-            onClick={handleRefresh}
-          >
-            {loading ? (
-              <span
-                className="dt-refresh-anim"
-                style={{ display: "inline-block" }}
-              >
-                ⟳
-              </span>
-            ) : (
-              <>
-                Refresh <span style={{ fontSize: 22 }}>▼</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/*  */}
-
-      <style>{`
-        .dt-refresh-anim {
-          animation: dtSpin 0.7s linear infinite;
-          display: inline-block;
-        }
-        @keyframes dtSpin {
-          100% { transform: rotate(360deg);}
-        }
-        @media (max-width: 900px) {
-          .responsive-grid {
-            grid-template-columns: 1fr !important;
-            gap: 18px !important;
-            margin-left: 4px !important;
-            margin-right: 4px !important;
-          }
-          .responsive-card {
-            max-width: 100vw !important;
-            min-width: 0 !important;
-            padding: 12px !important;
-          }
-        }
-        @media (max-width: 600px) {
-          .responsive-grid {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-            margin-left: 1px !important;
-            margin-right: 1px !important;
-          }
-          .responsive-card {
-            padding: 8px !important;
-          }
-        }
-      `}</style>
-
+      <ControlBar
+        exportOpen={exportOpen}
+        setExportOpen={setExportOpen}
+        exportCSV={exportCSV}
+        exportJSON={exportJSON}
+        dateRange={dateRange}
+        fullRange={fullRange}
+        handleDateChange={handleDateChange}
+        filterMetric={filterMetric}
+        setFilterMetric={setFilterMetric}
+        COLUMN_LABELS={COLUMN_LABELS}
+        handleRefresh={handleRefresh}
+        loading={loading}
+      />
       {/* Main caller */}
       {mounted && (
         <div
