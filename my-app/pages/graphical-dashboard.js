@@ -357,6 +357,7 @@ export default function GraphicalDashboard() {
     );
   }
 
+  // The main component return
   return (
     <div
       style={{
@@ -537,6 +538,8 @@ export default function GraphicalDashboard() {
           }
         }
       `}</style>
+
+      {/* Main caller */}
       {mounted && (
         <div
           style={{

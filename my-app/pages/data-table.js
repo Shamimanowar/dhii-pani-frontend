@@ -1,67 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PageHeader from '../components/PageHeader';
+import { isOutOfRange } from '../utils/columnLimits';
+import { exportCSV, exportExcel } from '../utils/exportUtils';
+import useGoogleSheetData from '../hooks/useGoogleSheetData';
+import DataTableBody from '../components/DataTableBody';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
-
-// Add your column limits here:
-const COLUMN_LIMITS = {
-  temp: { min: 25, max: 30 },
-  bod: { max: 30 },
-  cod: { max: 200 },
-  ph: { min: 6, max: 9 },
-  tds: { max: 2100 },
-  do: { min: 4.5, max: 8 },
-  color: { max: 150 }, // Color
-  tss: { max: 100 }
-};
-
-// Helper to check if a value is out of range
-function isOutOfRange(key, value) {
-  const lim = COLUMN_LIMITS[key];
-  if (!lim || value === undefined || value === null || value === '') return false;
-  if (typeof value === 'string' && value.trim() === '') return false;
-  if (lim.min !== undefined && Number(value) < lim.min) return true;
-  if (lim.max !== undefined && Number(value) > lim.max) return true;
-  return false;
-}
 
 export default function DataTable() {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [data, setData] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-
-  // Fetch Google Sheets CSV and parse it
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line
-  }, []);
-
-  function fetchData() {
-    fetch(GOOGLE_SHEET_CSV_URL)
-      .then(res => res.ok ? res.text() : Promise.reject())
-      .then(csv => {
-        const [header, ...rows] = csv.trim().split('\n');
-        const keys = header.split(',').map(k => k.trim().toLowerCase());
-        const parsed = rows
-          .map(row => {
-            const vals = row.split(',');
-            return Object.fromEntries(
-              vals.map((v, i) => [
-                keys[i],
-                isNaN(Number(v)) || v.trim() === '' ? v : Number(v)
-              ])
-            );
-          })
-          .filter(row => row.time);
-        setData(parsed);
-      })
-      .catch(() => setData([]));
-  }
+  const { data, setData, refreshing, handleRefresh } = useGoogleSheetData(GOOGLE_SHEET_CSV_URL);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('loggedIn') !== 'true') {
@@ -76,56 +29,14 @@ export default function DataTable() {
     if (page > TOTAL_PAGES) setPage(TOTAL_PAGES || 1);
   }, [data, TOTAL_PAGES, page]);
 
-  function handleRefresh() {
-    setRefreshing(true);
-    setTimeout(() => {
-      fetchData();
-      setRefreshing(false);
-    }, 600);
-  }
-
   function handleDateRange() {
     alert('Date range picker would open here.');
   }
 
-  function handleExportCSV() {
-    if (!data.length) return;
-    const header = Object.keys(data[0]).join(',');
-    const rows = data.map(row => Object.values(row).join(',')).join('\n');
-    const csv = header + '\n' + rows;
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'data-table.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-  function handleExportExcel() {
-    if (!data.length) return;
-    let table = '<table><tr>';
-    Object.keys(data[0]).forEach(key => { table += `<th>${key}</th>`; });
-    table += '</tr>';
-    data.forEach(row => {
-      table += '<tr>';
-      Object.values(row).forEach(val => { table += `<td>${val}</td>`; });
-      table += '</tr>';
-    });
-    table += '</table>';
-    const blob = new Blob([table], { type: 'application/vnd.ms-excel' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'data-table.xls';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
-
   function handleExportOption(type) {
     setExportOpen(false);
-    if (type === 'csv') handleExportCSV();
-    if (type === 'excel') handleExportExcel();
+    if (type === 'csv') exportCSV(data);
+    if (type === 'excel') exportExcel(data);
   }
 
   function handlePageChange(newPage) {
@@ -292,70 +203,7 @@ export default function DataTable() {
                 <th style={thStyle}>TSS</th>
               </tr>
             </thead>
-            <tbody>
-              {pagedData.map((row, i) => (
-                <tr
-                  key={i}
-                  className={refreshing ? '' : 'dt-row-anim'}
-                  style={{
-                    background: i % 2 === 0 ? '#f8f9fc' : '#fff',
-                    transition: 'background 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#e6eaff'}
-                  onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#f8f9fc' : '#fff'}
-                >
-                  <td style={tdStyle}>{row.time}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('temp', row.temp) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.temp}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('bod', row.bod) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.bod}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('cod', row.cod) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.cod}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('ph', row.ph) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.ph}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('tds', row.tds) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.tds}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('do', row.do) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.do}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('Color', row.color) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.color}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      background: isOutOfRange('tss', row.tss) ? '#ffeaea' : '#fff'
-                    }}
-                  >{row.tss}</td>
-                </tr>
-              ))}
-            </tbody>
+            <DataTableBody data={pagedData} refreshing={refreshing} tdStyle={tdStyle} />
           </table>
         </div>
       </div>
