@@ -83,7 +83,7 @@ export default function PageHeader({ title }) {
         }
         .ph-nav-link.active, .ph-nav-link:hover {
           color: #6c63ff;
-          font-weight: 700;
+          // font-weight: 700;
           border-bottom: 2.5px solid #6c63ff;
           background: #f3f3ff;
         }

@@ -122,13 +122,13 @@ const ControlBar = ({
         <input
           type="datetime-local"
           name="from"
-          value={dateRange.from}
+          value={dateRange.from ? dateRange.from : ''}
           min={
             fullRange[0]
               ? new Date(fullRange[0]).toISOString().slice(0, 16)
               : ""
           }
-          max={dateRange.to}
+          max={dateRange.to ? dateRange.to : ''}
           onChange={handleDateChange}
           style={dateInputStyle}
         />
@@ -136,8 +136,8 @@ const ControlBar = ({
         <input
           type="datetime-local"
           name="to"
-          value={dateRange.to}
-          min={dateRange.from}
+          value={dateRange.to ? dateRange.to : ''}
+          min={dateRange.from ? dateRange.from : ''}
           max={
             fullRange[1]
               ? new Date(fullRange[1]).toISOString().slice(0, 16)

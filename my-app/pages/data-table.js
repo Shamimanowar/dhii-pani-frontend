@@ -57,7 +57,7 @@ export default function DataTable() {
     }}>
       <style>{`
         .dt-table-container {
-          width: 1150px;
+          width: 1200px;
           background: #fff;
           border-radius: 18px;
           box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
@@ -98,7 +98,8 @@ export default function DataTable() {
             borderCollapse: 'collapse',
             width: '100%',
             background: '#fff',
-            fontSize: 16
+            fontSize: 16,
+
           }}>
             <thead>
               <tr style={{
@@ -158,24 +159,11 @@ export default function DataTable() {
         color: '#888',
         fontSize: 14
       }}>
-        <span>This table uses live data from Google Sheets. To update, edit the sheet.</span>
+        {/* <span>This table uses live data from Google Sheets. To update, edit the sheet.</span> */}
       </div>
     </div>
   );
 }
-
-const headerBtnStyle = {
-  fontWeight: 700,
-  fontSize: 18,
-  border: '2px solid #6c63ff',
-  background: '#fff',
-  color: '#6c63ff',
-  padding: '8px 22px',
-  borderRadius: 8,
-  cursor: 'pointer',
-  boxShadow: '0 2px 8px #6c63ff10',
-  transition: 'background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s'
-};
 
 const thStyle = {
   padding: '12px 18px',
