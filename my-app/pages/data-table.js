@@ -15,6 +15,8 @@ export default function DataTable() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [exportOpen, setExportOpen] = useState(false);
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [fullRange, setFullRange] = useState([0, 0]);
   const { data, setData, refreshing, handleRefresh } = useGoogleSheetData(GOOGLE_SHEET_CSV_URL);
 
   useEffect(() => {
@@ -23,6 +25,19 @@ export default function DataTable() {
     }
   }, [router]);
 
+  // Compute fullRange from data
+  useEffect(() => {
+    if (Array.isArray(data) && data.length > 0) {
+      const timestamps = data
+        .map(row => new Date(row.time).getTime())
+        .filter(Boolean)
+        .sort((a, b) => a - b);
+      if (timestamps.length) {
+        setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+      }
+    }
+  }, [data]);
+
   const TOTAL_ENTRIES = data.length;
   const TOTAL_PAGES = Math.max(1, Math.ceil(TOTAL_ENTRIES / PAGE_SIZE));
 
@@ -30,15 +45,50 @@ export default function DataTable() {
     if (page > TOTAL_PAGES) setPage(TOTAL_PAGES || 1);
   }, [data, TOTAL_PAGES, page]);
 
-  // Dummy props for ControlBar (no filter/date for this table)
+  // Date picker handler
+  function handleDateChange(e) {
+    const { name, value } = e.target;
+    setDateRange(prev => ({ ...prev, [name]: value }));
+    setPage(1); // Reset to first page on filter
+  }
+
+  // Filter data by date range
+  const filteredData = Array.isArray(data)
+    ? data.filter(row => {
+        if (!row.time) return false;
+        const t = new Date(row.time).getTime();
+        let inDateRange = true;
+        if (dateRange.from && dateRange.to) {
+          const from = new Date(dateRange.from).getTime();
+          const to = new Date(dateRange.to).getTime();
+          inDateRange = t >= from && t <= to;
+        }
+        if ((dateRange.from && !dateRange.to) || (!dateRange.from && dateRange.to)) {
+          inDateRange = false;
+        }
+        return inDateRange;
+      })
+    : [];
+
+  const TOTAL_FILTERED = filteredData.length;
+  const TOTAL_FILTERED_PAGES = Math.max(1, Math.ceil(TOTAL_FILTERED / PAGE_SIZE));
+
+  // Clamp page if needed after filtering
+  useEffect(() => {
+    if (page > TOTAL_FILTERED_PAGES) setPage(TOTAL_FILTERED_PAGES || 1);
+  }, [TOTAL_FILTERED_PAGES, page]);
+
+  const pagedData = filteredData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // ControlBar props (date picker enabled)
   const controlBarProps = {
     exportOpen,
     setExportOpen,
-    exportCSV: () => exportCSV(data),
+    exportCSV: () => exportCSV(filteredData),
     exportJSON: undefined, // Not used here
-    dateRange: { from: '', to: '' },
-    fullRange: [0, 0],
-    handleDateChange: () => {},
+    dateRange,
+    fullRange,
+    handleDateChange,
     filterMetric: '',
     setFilterMetric: () => {},
     COLUMN_LABELS: {},
@@ -46,7 +96,9 @@ export default function DataTable() {
     loading: refreshing
   };
 
-  const pagedData = Array.isArray(data) ? data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : [];
+  function handlePageChange(newPage) {
+    if (newPage >= 1 && newPage <= TOTAL_FILTERED_PAGES) setPage(newPage);
+  }
 
   return (
     <div style={{
@@ -130,7 +182,7 @@ export default function DataTable() {
         color: '#888',
         fontSize: 15
       }}>
-        Showing {pagedData.length > 0 ? (PAGE_SIZE * (page - 1) + 1) : 0} to {PAGE_SIZE * (page - 1) + pagedData.length} of {TOTAL_ENTRIES} entries
+        Showing {pagedData.length > 0 ? (PAGE_SIZE * (page - 1) + 1) : 0} to {PAGE_SIZE * (page - 1) + pagedData.length} of {TOTAL_FILTERED} entries
       </div>
       {/* Pagination */}
       <div style={{
@@ -140,16 +192,21 @@ export default function DataTable() {
         gap: 8
       }}>
         <button disabled={page === 1} style={page === 1 ? paginationBtnDisabled : paginationBtn} onClick={() => handlePageChange(page - 1)}>Previous</button>
-        {[1, 2, 3, 4, 5].map(p => (
-          <button
-            key={p}
-            style={page === p ? paginationBtnActive : paginationBtn}
-            onClick={() => handlePageChange(p)}
-          >{p}</button>
-        ))}
-        <span style={{ alignSelf: 'center', fontSize: 18 }}>...</span>
-        <button style={paginationBtn} onClick={() => handlePageChange(TOTAL_PAGES)}>{TOTAL_PAGES}</button>
-        <button disabled={page === TOTAL_PAGES} style={page === TOTAL_PAGES ? paginationBtnDisabled : paginationBtn} onClick={() => handlePageChange(page + 1)}>Next</button>
+        {[...Array(Math.min(5, TOTAL_FILTERED_PAGES)).keys()].map(i => {
+          const p = i + 1;
+          return (
+            <button
+              key={p}
+              style={page === p ? paginationBtnActive : paginationBtn}
+              onClick={() => handlePageChange(p)}
+            >{p}</button>
+          );
+        })}
+        {TOTAL_FILTERED_PAGES > 5 && <span style={{ alignSelf: 'center', fontSize: 18 }}>...</span>}
+        {TOTAL_FILTERED_PAGES > 5 && (
+          <button style={paginationBtn} onClick={() => handlePageChange(TOTAL_FILTERED_PAGES)}>{TOTAL_FILTERED_PAGES}</button>
+        )}
+        <button disabled={page === TOTAL_FILTERED_PAGES} style={page === TOTAL_FILTERED_PAGES ? paginationBtnDisabled : paginationBtn} onClick={() => handlePageChange(page + 1)}>Next</button>
       </div>
       {/* Note */}
       <div style={{
