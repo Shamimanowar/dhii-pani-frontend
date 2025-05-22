@@ -387,6 +387,13 @@ export default function SummaryDashboard() {
           opacity: 0.8;
           letter-spacing: 1px;
         }
+        .dt-refresh-anim {
+          animation: dtSpin 0.7s linear infinite;
+          display: inline-block;
+        }
+        @keyframes dtSpin {
+          100% { transform: rotate(360deg); }
+        }
         @media (max-width: 1400px) {
           .summary-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -68,8 +68,12 @@ const ControlBar = ({
           flexWrap: "wrap",
           gap: 16,
           alignItems: "center",
-          justifyContent: "flex-end",
+          // justifyContent: "center",
           padding: "12px 0 10px 0",
+
+          justifyContent: "flex-end",
+          margin: "0 50px",
+
         }}
       >
         {/* Export Dropdown */}

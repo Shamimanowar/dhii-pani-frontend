@@ -19,11 +19,11 @@ export default function DataTable() {
   const [fullRange, setFullRange] = useState([0, 0]);
   const { data, setData, refreshing, handleRefresh } = useGoogleSheetData(GOOGLE_SHEET_CSV_URL);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('loggedIn') !== 'true') {
-      router.replace('/login');
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined' && localStorage.getItem('loggedIn') !== 'true') {
+  //     router.replace('/login');
+  //   }
+  // }, [router]);
 
   // Compute fullRange from data
   useEffect(() => {

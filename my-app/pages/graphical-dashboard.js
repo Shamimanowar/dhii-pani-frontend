@@ -384,6 +384,15 @@ export default function GraphicalDashboard() {
         handleRefresh={handleRefresh}
         loading={loading}
       />
+      <style>{`
+        .dt-refresh-anim {
+          animation: dtSpin 0.7s linear infinite;
+          display: inline-block;
+        }
+        @keyframes dtSpin {
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* Main caller */}
       {mounted && (
         <div
