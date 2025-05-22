@@ -5,6 +5,8 @@ import { isOutOfRange } from '../utils/columnLimits';
 import { exportCSV, exportExcel } from '../utils/exportUtils';
 import useGoogleSheetData from '../hooks/useGoogleSheetData';
 import DataTableBody from '../components/DataTableBody';
+import cookie from 'cookie';
+import { GetServerSideProps } from 'next';
 import ControlBar from '../components/ControlBar';
 
 const PAGE_SIZE = 20;
@@ -221,6 +223,21 @@ export default function DataTable() {
     </div>
   );
 }
+
+export const getServerSideProps = async ({ req }) => {
+  const cookies = cookie.parse(req.headers.cookie || "");
+  const accessToken = cookies.accessToken || null;
+
+  if (!accessToken) {
+    return {
+      redirect: { destination: "/login", permanent: false },
+    };
+  }
+
+  return { props: {} };
+};
+
+
 
 const thStyle = {
   padding: '12px 18px',

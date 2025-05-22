@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/router';
+import cookie from 'cookie';
 
 export default function Login() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
@@ -15,15 +16,29 @@ export default function Login() {
     setTimeout(() => setCardVisible(true), 100);
   }, []);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'password') {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('loggedIn', 'true');
+    if (phoneInput && password) {
+      try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone: phoneInput, password, is_staff: true }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error);
       }
       router.push('/data-table');
+    } catch (err) {
+      setError(err.message);
+    }
+      
     } else {
-      setError('Invalid username or password');
+      setError('Invalid Phone or password');
       setTimeout(() => setError(''), 2000);
     }
   }
@@ -117,9 +132,9 @@ export default function Login() {
               <svg width="20" height="20" fill="none"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zM2 18a8 8 0 1116 0H2z" stroke="currentColor" strokeWidth="1.5"/></svg>
             </span>
             <input
-              id="username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              id="phone"
+              value={phoneInput}
+              onChange={e => setPhoneInput(e.target.value)}
               required
               className="login-input"
               style={{
@@ -133,8 +148,9 @@ export default function Login() {
                 boxSizing: 'border-box',
                 background: '#f7f8fa'
               }}
-              autoComplete="username"
-              placeholder="Username"
+              autoComplete="phone"
+              placeholder="Phone number"
+              // pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
             />
           </div>
           <div className="login-input-wrapper" style={{ marginBottom: 22 }}>
