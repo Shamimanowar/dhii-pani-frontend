@@ -4,7 +4,6 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import tableData from "../data/tableData";
 import ControlBar from "../components/ControlBar";
 
-// Modern color palette
 const COLORS = [
   "#345995",
   "#6DECB9",
@@ -16,7 +15,6 @@ const COLORS = [
   "#ffc658",
 ];
 
-// Stats helper
 function getColumnStats(data, key) {
   const values = data
     .map((row) => row[key])
@@ -42,7 +40,6 @@ function getColumnStats(data, key) {
   return { mean, min, max, outsideSpec, missing };
 }
 
-// Quantile helper
 function quantile(sorted, q) {
   const pos = (sorted.length - 1) * q;
   const base = Math.floor(pos);
@@ -54,7 +51,6 @@ function quantile(sorted, q) {
   }
 }
 
-// Pie data helper
 function getPieData(data, key) {
   const values = data
     .map((row) => row[key])
@@ -82,9 +78,7 @@ function getPieData(data, key) {
   ];
 }
 
-// Tooltip
 function CustomTooltip({ active, payload, stats, col }) {
-  // Fix: Only render if active AND payload[0] exists AND payload[0].payload exists
   if (active && payload && payload.length && payload[0] && payload[0].payload) {
     return (
       <div
@@ -142,14 +136,13 @@ const COLUMN_LABELS = Object.keys(tableData[0] || {}).filter(k => k !== "time").
 
 export default function SummaryDashboard() {
   const [mounted, setMounted] = useState(false);
-  const [dateRange, setDateRange] = useState({ from: "", to: "" }); // Start blank
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [fullRange, setFullRange] = useState([0, 0]);
   const [exportOpen, setExportOpen] = useState(false);
   const [filterColumn, setFilterColumn] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // On mount, set up data and date range
   useEffect(() => {
     setMounted(true);
     fetchData();
@@ -175,7 +168,7 @@ export default function SummaryDashboard() {
 
   function handleRefresh() {
     fetchData();
-    setDateRange({ from: "", to: "" }); // Clear date fields on refresh
+    setDateRange({ from: "", to: "" });
   }
 
   function handleDateChange(e) {
@@ -183,7 +176,6 @@ export default function SummaryDashboard() {
     setDateRange((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Export helpers
   function exportCSV() {
     const filtered = filteredData;
     if (!filtered.length) return;
@@ -221,18 +213,13 @@ export default function SummaryDashboard() {
   const filteredData = data.filter((row) => {
     if (!row.time) return false;
     const t = new Date(row.time).getTime();
-    // If both date fields are blank, show all data
     let inDateRange = true;
     if (dateRange.from && dateRange.to) {
       const from = new Date(dateRange.from).getTime();
       const to = new Date(dateRange.to).getTime();
       inDateRange = t >= from && t <= to;
     }
-    // If only one is set, don't show any data until both are set (optional: comment out to allow partial filter)
-    if (
-      (dateRange.from && !dateRange.to) ||
-      (!dateRange.from && dateRange.to)
-    ) {
+    if ((dateRange.from && !dateRange.to) || (!dateRange.from && dateRange.to)) {
       inDateRange = false;
     }
     const columnOk = filterColumn
@@ -243,7 +230,6 @@ export default function SummaryDashboard() {
     return inDateRange && columnOk;
   });
 
-  // Only show the selected column, or all if none selected
   const columns = Object.keys(tableData[0] || {}).filter(
     (key) => key !== "time" && (!filterColumn || key === filterColumn)
   );
@@ -256,9 +242,9 @@ export default function SummaryDashboard() {
         padding: 0,
         fontFamily: "Inter, Segoe UI, Arial, sans-serif",
         position: "relative",
+        overflowX: "hidden", // Prevent X-axis overflow
       }}
     >
-      {/* Header with controls below */}
       <div
         style={{
           background: "linear-gradient(120deg, rgb(247, 248, 250) 0%, rgb(227, 230, 243) 100%)",
@@ -269,14 +255,7 @@ export default function SummaryDashboard() {
           zIndex: 100,
         }}
       >
-        <div
-          style={{
-            // maxWidth: 1200,
-            display: "flex",
-            flexDirection: "column",
-            gap: 0,
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           <PageHeader title="Summary Dashboard" />
         </div>
       </div>
@@ -296,112 +275,46 @@ export default function SummaryDashboard() {
             handleRefresh={handleRefresh}
             loading={loading}
           />
-          <div
-            className="responsive-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-              gap: 36,
-              marginTop: 40,
-              marginLeft: 0, // removed left margin
-              marginRight: 0, // removed right margin
-              marginBottom: 40,
-            }}
-          >
+          <div className="summary-grid" >
             {columns.map((col, idx) => {
               const stats = getColumnStats(filteredData, col);
               const pieData = getPieData(filteredData, col);
               return (
-                <div
-                  key={col}
-                  className="responsive-card"
-                  style={{
-                    background:
-                      "linear-gradient(120deg, #fff 60%, #f7f8fa 100%)",
-                    borderRadius: 18,
-                    boxShadow: "0 8px 32px #6c63ff18",
-                    padding: 24,
-                    marginBottom: 0,
-                    width: "100%",
-                    maxWidth: 420,
-                    minWidth: 0,
-                    transition: "box-shadow 0.2s",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    border: "1.5px solid #ececff",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 800,
-                      fontSize: 22,
-                      marginBottom: 18,
-                      letterSpacing: 1,
-                      color: "#6c63ff",
-                      textAlign: "center",
-                    }}
-                  >
-                    {col.toUpperCase()}
+                <div key={col} className="summary-card">
+                  <div className="summary-card-title">{col.toUpperCase()}</div>
+                  <div className="summary-chart-container">
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={90}
+                          fill="#8884d8"
+                          paddingAngle={2}
+                          dataKey="value"
+                          isAnimationActive={true}
+                          animationDuration={900}
+                        >
+                          {pieData.map((entry, i) => (
+                            <Cell
+                              key={`cell-${i}`}
+                              fill={COLORS[i % COLORS.length]}
+                              style={{ cursor: "pointer", transition: "filter 0.2s" }}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip content={(props) => <CustomTooltip {...props} stats={stats} col={col} />} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
-                  <ResponsiveContainer width={260} height={260}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={110}
-                        fill="#8884d8"
-                        paddingAngle={2}
-                        dataKey="value"
-                        isAnimationActive={true}
-                        animationDuration={900}
-                      >
-                        {pieData.map((entry, i) => (
-                          <Cell
-                            key={`cell-${i}`}
-                            fill={COLORS[i % COLORS.length]}
-                            style={{
-                              cursor: "pointer",
-                              transition: "filter 0.2s",
-                            }}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        content={(props) => (
-                          <CustomTooltip {...props} stats={stats} col={col} />
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div
-                    style={{
-                      marginTop: 18,
-                      width: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 4,
-                      fontSize: 15,
-                      color: "#444",
-                    }}
-                  >
-                    <div>
-                      <b>Mean:</b> {stats.mean}
-                    </div>
-                    <div>
-                      <b>Min:</b> {stats.min}
-                    </div>
-                    <div>
-                      <b>Max:</b> {stats.max}
-                    </div>
-                    <div>
-                      <b>Outside Spec:</b> {stats.outsideSpec}
-                    </div>
-                    <div>
-                      <b>Missing Data:</b> {stats.missing}
-                    </div>
+                  <div className="summary-stats">
+                    <div><b>Mean:</b> {stats.mean}</div>
+                    <div><b>Min:</b> {stats.min}</div>
+                    <div><b>Max:</b> {stats.max}</div>
+                    <div><b>Outside Spec:</b> {stats.outsideSpec}</div>
+                    <div><b>Missing Data:</b> {stats.missing}</div>
                   </div>
                 </div>
               );
@@ -410,53 +323,90 @@ export default function SummaryDashboard() {
         </>
       )}
       {!filteredData.length && (
-        <div
-          style={{
-            textAlign: "center",
-            color: "#6c63ff",
-            fontWeight: 600,
-            fontSize: 22,
-            marginTop: 80,
-            opacity: 0.8,
-            letterSpacing: 1,
-          }}
-        >
+        <div className="summary-empty">
           {loading
             ? "Loading..."
             : "No data to display. Please select a date range or adjust filters."}
         </div>
       )}
-      {/* Responsive styles */}
       <style>{`
-        .dt-refresh-anim {
-          animation: dtSpin 0.7s linear infinite;
-          display: inline-block;
+        .summary-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 60px;
+          margin: 40px auto;
+          width: 100%;
+          max-width: 1600px;
+          box-sizing: border-box;
+          padding: 0 24px;
         }
-        @keyframes dtSpin {
-          100% { transform: rotate(360deg);}
+        .summary-card {
+          background: linear-gradient(120deg, #fff 60%, #f7f8fa 100%);
+          border-radius: 18px;
+          box-shadow: 0 8px 32px #6c63ff18;
+          padding: 24px 18px 18px 18px;
+          width: 100%;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          border: 1.5px solid #ececff;
+          transition: box-shadow 0.2s;
         }
-        @media (max-width: 900px) {
-          .responsive-grid {
-            grid-template-columns: 1fr !important;
-            gap: 18px !important;
-            margin-left: 4px !important;
-            margin-right: 4px !important;
-          }
-          .responsive-card {
-            max-width: 100vw !important;
-            min-width: 0 !important;
-            padding: 12px !important;
+        .summary-card-title {
+          font-weight: 800;
+          font-size: 20px;
+          margin-bottom: 14px;
+          letter-spacing: 1px;
+          color: #6c63ff;
+          text-align: center;
+        }
+        .summary-chart-container {
+          width: 100%;
+          min-width: 0;
+          height: 220px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .summary-stats {
+          margin-top: 14px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          font-size: 15px;
+          color: #444;
+        }
+        .summary-empty {
+          text-align: center;
+          color: #6c63ff;
+          font-weight: 600;
+          font-size: 22px;
+          margin-top: 80px;
+          opacity: 0.8;
+          letter-spacing: 1px;
+        }
+        @media (max-width: 1400px) {
+          .summary-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
           }
         }
-        @media (max-width: 600px) {
-          .responsive-grid {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-            margin-left: 1px !important;
-            margin-right: 1px !important;
+        @media (max-width: 1000px) {
+          .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            padding: 0 8px;
           }
-          .responsive-card {
-            padding: 8px !important;
+        }
+        @media (max-width: 700px) {
+          .summary-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            padding: 0 2px;
+          }
+          .summary-card {
+            padding: 10px 4px 8px 4px;
           }
         }
       `}</style>
