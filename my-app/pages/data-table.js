@@ -227,7 +227,7 @@ export default function DataTable() {
 export const getServerSideProps = async ({ req }) => {
   const cookies = cookie.parse(req.headers.cookie || "");
   const accessToken = cookies.accessToken || null;
-
+  // console.info("Access Token from cookie: ", accessToken);
   if (!accessToken) {
     return {
       redirect: { destination: "/login", permanent: false },

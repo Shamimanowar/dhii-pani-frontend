@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import ControlBar from "../components/ControlBar";
+import cookie from "cookie";
 
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
@@ -429,6 +430,19 @@ export default function GraphicalDashboard() {
     </div>
   );
 }
+
+export const getServerSideProps = async ({ req }) => {
+  const cookies = cookie.parse(req.headers.cookie || "");
+  const accessToken = cookies.accessToken || null;
+  // console.info("Access Token from cookie: ", accessToken);
+  if (!accessToken) {
+    return {
+      redirect: { destination: "/login", permanent: false },
+    };
+  }
+
+  return { props: {} };
+};
 
 const cardStyle = {
   background: "linear-gradient(120deg, #fff 60%, #f7f8fa 100%)",

@@ -39,7 +39,20 @@ export default async function handler(req, res) {
     } catch (error) {
       res.status(401).json({ error: "Authentication failed" });
     }
-  } else {
+  }
+    else if (req.method === "DELETE") {
+    // Logout: Clear cookies
+    res.setHeader("Set-Cookie", cookie.serialize("accessToken", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      maxAge: 0, // Expire immediately
+      path: "/",
+    }));
+    res.status(200).json({ message: "Logged out successfully" });
+
+    }
+
+  else {
     res.status(405).json({ error: "Method Not Allowed" });
   }
 }

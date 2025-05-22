@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import tableData from "../data/tableData";
 import ControlBar from "../components/ControlBar";
+import cookie from "cookie";
 
 const COLORS = [
   "#345995",
@@ -14,6 +15,7 @@ const COLORS = [
   "#82ca9d",
   "#ffc658",
 ];
+
 
 function getColumnStats(data, key) {
   const values = data
@@ -420,3 +422,16 @@ export default function SummaryDashboard() {
     </div>
   );
 }
+
+export const getServerSideProps = async ({ req }) => {
+  const cookies = cookie.parse(req.headers.cookie || "");
+  const accessToken = cookies.accessToken || null;
+  console.info("Access Token from cookie: ", accessToken);
+  if (!accessToken) {
+    return {
+      redirect: { destination: "/login", permanent: false },
+    };
+  }
+
+  return { props: {} };
+};

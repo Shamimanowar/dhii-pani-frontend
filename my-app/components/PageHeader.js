@@ -16,12 +16,15 @@ export default function PageHeader({ title }) {
     setCurrentPath(router.pathname);
   }, [router.pathname]);
 
-  function handleLogout() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('loggedIn');
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/login", { method: "DELETE" }); // Call API to remove token
+      router.push("/login"); // Redirect to login page after logout
+    } catch (err) {
+      setError("Logout failed.");
     }
-    router.push('/login');
-  }
+  };
+
 
   return (
     <header style={{ marginBottom: 64, boxShadow: '0 4px 24px #6c63ff10', background: '#fff', borderRadius: 0, position: 'relative', zIndex: 10 }}>
