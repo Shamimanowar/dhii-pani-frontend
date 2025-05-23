@@ -1,13 +1,13 @@
 // Column limits and isOutOfRange helper
 export const COLUMN_LIMITS = {
-  temp: { min: 25, max: 30 },
+  temp: { min: 25, max: 45 },
   bod: { max: 30 },
   cod: { max: 200 },
-  ph: { min: 6, max: 9 },
+  ph: { min: 5, max: 9 },
   tds: { max: 2100 },
   do: { min: 4.5, max: 8 },
   color: { max: 150 },
-  tss: { max: 100 }
+  tss: {min:30, max: 100 }
 };
 
 export function isOutOfRange(key, value) {

@@ -3,16 +3,14 @@ import { useRouter } from 'next/router';
 import PageHeader from '../components/PageHeader';
 import { isOutOfRange } from '../utils/columnLimits';
 import { exportCSV, exportExcel } from '../utils/exportUtils';
-import useGoogleSheetData from '../hooks/useGoogleSheetData';
 import DataTableBody from '../components/DataTableBody';
 import cookie from 'cookie';
 import { GetServerSideProps } from 'next';
 import ControlBar from '../components/ControlBar';
 import '../css/data-table.css';
+import { sensorData } from '../data/tableData';
 
 const PAGE_SIZE = 20;
-const GOOGLE_SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
 
 export default function DataTable() {
   const router = useRouter();
@@ -20,15 +18,21 @@ export default function DataTable() {
   const [exportOpen, setExportOpen] = useState(false);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [fullRange, setFullRange] = useState([0, 0]);
-  const { data, setData, refreshing, handleRefresh } = useGoogleSheetData(GOOGLE_SHEET_CSV_URL);
 
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined' && localStorage.getItem('loggedIn') !== 'true') {
-  //     router.replace('/login');
-  //   }
-  // }, [router]);
+  // Transform sensorData.results to table rows with correct keys
+  const data = sensorData.results.map(row => ({
+    time: row.timestamp,
+    temp: row.temperature,
+    bod: row.bod,
+    cod: row.cod,
+    ph: row.ph,
+    tds: row.tds,
+    do: row.do,
+    color: row.color,
+    tss: row.tss
+  }));
 
-  // Compute fullRange from data
+  // I may not need this, but keeping it for now
   useEffect(() => {
     if (Array.isArray(data) && data.length > 0) {
       const timestamps = data
@@ -56,6 +60,7 @@ export default function DataTable() {
   }
 
   // Filter data by date range
+  // I may not need this, but keeping it for now
   const filteredData = Array.isArray(data)
     ? data.filter(row => {
         if (!row.time) return false;
@@ -95,8 +100,8 @@ export default function DataTable() {
     filterMetric: '',
     setFilterMetric: () => {},
     COLUMN_LABELS: {},
-    handleRefresh,
-    loading: refreshing
+    handleRefresh: () => {},
+    loading: false
   };
 
   function handlePageChange(newPage) {
@@ -124,7 +129,7 @@ export default function DataTable() {
                 <th className="data-table-th">TSS</th>
               </tr>
             </thead>
-            <DataTableBody data={pagedData} refreshing={refreshing} tdStyle={tdStyle} />
+            <DataTableBody data={pagedData} refreshing={false} tdStyle={tdStyle} />
           </table>
         </div>
       </div>
@@ -173,41 +178,9 @@ export const getServerSideProps = async ({ req }) => {
 };
 
 
-
-const thStyle = {
-  padding: '12px 18px',
-  borderBottom: '2px solid #ececff',
-  textAlign: 'left',
-  fontSize: 15,
-  letterSpacing: 1
-};
 const tdStyle = {
   padding: '11px 18px',
   borderBottom: '1px solid #f0f0f0',
   textAlign: 'left',
   fontSize: 15
-};
-const paginationBtn = {
-  padding: '7px 16px',
-  border: 'none',
-  background: '#f3f3f3',
-  borderRadius: 6,
-  fontWeight: 500,
-  fontSize: 16,
-  color: '#6c63ff',
-  cursor: 'pointer',
-  transition: 'background 0.2s, color 0.2s, transform 0.2s'
-};
-const paginationBtnActive = {
-  ...paginationBtn,
-  background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-  color: '#fff',
-  fontWeight: 700,
-  transform: 'scale(1.08)'
-};
-const paginationBtnDisabled = {
-  ...paginationBtn,
-  background: '#eaeaea',
-  color: '#aaa',
-  cursor: 'not-allowed'
 };
