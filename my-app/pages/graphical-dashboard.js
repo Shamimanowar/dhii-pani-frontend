@@ -252,6 +252,7 @@ export default function GraphicalDashboard() {
   const metrics = Object.keys(COLUMN_LABELS).filter(
     (m) => !filterMetric || m === filterMetric
   );
+  const isSingleMetric = metrics.length === 1;
 
   // Helper to render a modern card for each metric
   function renderChart(metric, idx) {
@@ -434,7 +435,7 @@ export default function GraphicalDashboard() {
       />
       {/* Main caller */}
       {mounted && (
-        <div className="graphical-dashboard-main">
+        <div className={`graphical-dashboard-main${isSingleMetric ? ' single-metric' : ''}`}>
           {metrics.map((metric, idx) => renderChart(metric, idx))}
         </div>
       )}
