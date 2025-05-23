@@ -1,7 +1,6 @@
 import PageHeader from "../components/PageHeader";
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import tableData from "../data/tableData";
 import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
 import '../css/summary-dashboard.css';
@@ -112,11 +111,6 @@ function CustomTooltip({ active, payload, stats, col }) {
   return null;
 }
 
-const COLUMN_LABELS = Object.keys(tableData[0] || {}).filter(k => k !== "time").reduce((acc, k) => {
-  acc[k] = k.toUpperCase();
-  return acc;
-}, {});
-
 export default function SummaryDashboard() {
   const [mounted, setMounted] = useState(false);
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
@@ -134,19 +128,38 @@ export default function SummaryDashboard() {
 
   function fetchData() {
     setLoading(true);
-    setTimeout(() => {
-      setData(tableData);
-      if (tableData && tableData.length) {
-        const timestamps = tableData
-          .map((row) => new Date(row.time).getTime())
-          .filter(Boolean)
-          .sort((a, b) => a - b);
-        if (timestamps.length) {
-          setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+    fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
+      .then(res => res.json())
+      .then(json => {
+        const mapped = Array.isArray(json.results)
+          ? json.results.map(row => ({
+              time: row.timestamp,
+              temp: row.temperature,
+              bod: row.bod,
+              cod: row.cod,
+              ph: row.ph,
+              tds: row.tds,
+              do: row.do,
+              color: row.color,
+              tss: row.tss
+            }))
+          : [];
+        setData(mapped);
+        if (mapped.length) {
+          const timestamps = mapped
+            .map(row => new Date(row.time).getTime())
+            .filter(Boolean)
+            .sort((a, b) => a - b);
+          if (timestamps.length) {
+            setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+          }
         }
-      }
-      setLoading(false);
-    }, 300);
+        setLoading(false);
+      })
+      .catch(() => {
+        setData([]);
+        setLoading(false);
+      });
   }
 
   function handleRefresh() {
@@ -213,7 +226,12 @@ export default function SummaryDashboard() {
     return inDateRange && columnOk;
   });
 
-  const columns = Object.keys(tableData[0] || {}).filter(
+  const COLUMN_LABELS = Object.keys(data[0] || {}).filter(k => k !== "time").reduce((acc, k) => {
+    acc[k] = k.toUpperCase();
+    return acc;
+  }, {});
+
+  const columns = Object.keys(data[0] || {}).filter(
     (key) => key !== "time" && (!filterColumn || key === filterColumn)
   );
 

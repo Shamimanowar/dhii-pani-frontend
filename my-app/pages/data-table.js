@@ -8,7 +8,7 @@ import cookie from 'cookie';
 import { GetServerSideProps } from 'next';
 import ControlBar from '../components/ControlBar';
 import '../css/data-table.css';
-import { sensorData } from '../data/tableData';
+// Removed sensorData import
 
 const PAGE_SIZE = 20;
 
@@ -18,21 +18,52 @@ export default function DataTable() {
   const [exportOpen, setExportOpen] = useState(false);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [fullRange, setFullRange] = useState([0, 0]);
+  const [data, setData] = useState([]);
+  const [count, setCount] = useState(0);
+  const [nextUrl, setNextUrl] = useState(null);
+  const [prevUrl, setPrevUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Transform sensorData.results to table rows with correct keys
-  const data = sensorData.results.map(row => ({
-    time: row.timestamp,
-    temp: row.temperature,
-    bod: row.bod,
-    cod: row.cod,
-    ph: row.ph,
-    tds: row.tds,
-    do: row.do,
-    color: row.color,
-    tss: row.tss
-  }));
+  // Fetch data from /api/data.js
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      let url = `/api/data?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
+      try {
+        const res = await fetch(url, { credentials: 'include' });
+        const json = await res.json();
+        setCount(json.count || 0);
+        setNextUrl(json.next);
+        setPrevUrl(json.previous);
+        // Map backend structure to table rows
+        setData(
+          Array.isArray(json.results)
+            ? json.results.map(row => ({
+                time: row.timestamp,
+                temp: row.temperature,
+                bod: row.bod,
+                cod: row.cod,
+                ph: row.ph,
+                tds: row.tds,
+                do: row.do,
+                color: row.color,
+                tss: row.tss
+              }))
+            : []
+        );
+      } catch (err) {
+        setData([]);
+        setCount(0);
+        setNextUrl(null);
+        setPrevUrl(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [page]);
 
-  // I may not need this, but keeping it for now
+  // Set full date range
   useEffect(() => {
     if (Array.isArray(data) && data.length > 0) {
       const timestamps = data
@@ -45,13 +76,6 @@ export default function DataTable() {
     }
   }, [data]);
 
-  const TOTAL_ENTRIES = data.length;
-  const TOTAL_PAGES = Math.max(1, Math.ceil(TOTAL_ENTRIES / PAGE_SIZE));
-
-  useEffect(() => {
-    if (page > TOTAL_PAGES) setPage(TOTAL_PAGES || 1);
-  }, [data, TOTAL_PAGES, page]);
-
   // Date picker handler
   function handleDateChange(e) {
     const { name, value } = e.target;
@@ -59,8 +83,7 @@ export default function DataTable() {
     setPage(1); // Reset to first page on filter
   }
 
-  // Filter data by date range
-  // I may not need this, but keeping it for now
+  // Filter data by date range (client-side)
   const filteredData = Array.isArray(data)
     ? data.filter(row => {
         if (!row.time) return false;
@@ -86,7 +109,7 @@ export default function DataTable() {
     if (page > TOTAL_FILTERED_PAGES) setPage(TOTAL_FILTERED_PAGES || 1);
   }, [TOTAL_FILTERED_PAGES, page]);
 
-  const pagedData = filteredData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pagedData = filteredData;
 
   // ControlBar props (date picker enabled)
   const controlBarProps = {
@@ -100,12 +123,20 @@ export default function DataTable() {
     filterMetric: '',
     setFilterMetric: () => {},
     COLUMN_LABELS: {},
-    handleRefresh: () => {},
-    loading: false
+    handleRefresh: () => setPage(1),
+    loading
   };
 
   function handlePageChange(newPage) {
-    if (newPage >= 1 && newPage <= TOTAL_FILTERED_PAGES) setPage(newPage);
+    if (newPage >= 1 && newPage <= Math.ceil(count / PAGE_SIZE)) setPage(newPage);
+  }
+
+  // Pagination button handlers for API-based pagination
+  function handleNext() {
+    if (nextUrl) setPage(page + 1);
+  }
+  function handlePrev() {
+    if (prevUrl) setPage(page - 1);
   }
 
   return (
@@ -129,18 +160,18 @@ export default function DataTable() {
                 <th className="data-table-th">TSS</th>
               </tr>
             </thead>
-            <DataTableBody data={pagedData} refreshing={false} tdStyle={tdStyle} />
+            <DataTableBody data={pagedData} refreshing={loading} tdStyle={tdStyle} />
           </table>
         </div>
       </div>
       {/* Table Footer */}
       <div className="data-table-entries">
-        Showing {pagedData.length > 0 ? (PAGE_SIZE * (page - 1) + 1) : 0} to {PAGE_SIZE * (page - 1) + pagedData.length} of {TOTAL_FILTERED} entries
+        Showing {pagedData.length > 0 ? (PAGE_SIZE * (page - 1) + 1) : 0} to {PAGE_SIZE * (page - 1) + pagedData.length} of {count} entries
       </div>
       {/* Pagination */}
       <div className="data-table-pagination">
-        <button disabled={page === 1} className={`data-table-pagination-btn${page === 1 ? ' disabled' : ''}`} onClick={() => handlePageChange(page - 1)}>Previous</button>
-        {[...Array(Math.min(5, TOTAL_FILTERED_PAGES)).keys()].map(i => {
+        <button disabled={!prevUrl || page === 1} className={`data-table-pagination-btn${!prevUrl || page === 1 ? ' disabled' : ''}`} onClick={handlePrev}>Previous</button>
+        {[...Array(Math.min(5, Math.ceil(count / PAGE_SIZE))).keys()].map(i => {
           const p = i + 1;
           return (
             <button
@@ -150,11 +181,11 @@ export default function DataTable() {
             >{p}</button>
           );
         })}
-        {TOTAL_FILTERED_PAGES > 5 && <span style={{ alignSelf: 'center', fontSize: 18 }}>...</span>}
-        {TOTAL_FILTERED_PAGES > 5 && (
-          <button className="data-table-pagination-btn" onClick={() => handlePageChange(TOTAL_FILTERED_PAGES)}>{TOTAL_FILTERED_PAGES}</button>
+        {Math.ceil(count / PAGE_SIZE) > 5 && <span style={{ alignSelf: 'center', fontSize: 18 }}>...</span>}
+        {Math.ceil(count / PAGE_SIZE) > 5 && (
+          <button className="data-table-pagination-btn" onClick={() => handlePageChange(Math.ceil(count / PAGE_SIZE))}>{Math.ceil(count / PAGE_SIZE)}</button>
         )}
-        <button disabled={page === TOTAL_FILTERED_PAGES} className={`data-table-pagination-btn${page === TOTAL_FILTERED_PAGES ? ' disabled' : ''}`} onClick={() => handlePageChange(page + 1)}>Next</button>
+        <button disabled={!nextUrl || page === Math.ceil(count / PAGE_SIZE)} className={`data-table-pagination-btn${!nextUrl || page === Math.ceil(count / PAGE_SIZE) ? ' disabled' : ''}`} onClick={handleNext}>Next</button>
       </div>
       {/* Note */}
       <div className="data-table-note">
@@ -167,16 +198,13 @@ export default function DataTable() {
 export const getServerSideProps = async ({ req }) => {
   const cookies = cookie.parse(req.headers.cookie || "");
   const accessToken = cookies.accessToken || null;
-  // console.info("Access Token from cookie: ", accessToken);
   if (!accessToken) {
     return {
       redirect: { destination: "/login", permanent: false },
     };
   }
-
   return { props: {} };
 };
-
 
 const tdStyle = {
   padding: '11px 18px',

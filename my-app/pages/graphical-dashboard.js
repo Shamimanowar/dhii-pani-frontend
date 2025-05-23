@@ -20,9 +20,6 @@ import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
 import '../css/graphical-dashboard.css';
 
-const GOOGLE_SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
-
 const COLORS = [
   "#e75480",
   "#764ba2",
@@ -68,6 +65,27 @@ function brushTickFormatter(str) {
   return str;
 }
 
+// Helper for formatting time for Brush and XAxis
+function timeTickFormatter(str) {
+  if (!str) return "";
+  // Try to format ISO or YYYY-MM-DDTHH:mm:ssZ to 'MM-DD HH:mm'
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${mm}-${dd} ${hh}:${min}`;
+  }
+  // fallback: try to split if space exists
+  const parts = str.split(" ");
+  if (parts.length === 2) {
+    const [date, time] = parts;
+    return `${date.slice(5)} ${time.slice(0, 5)}`;
+  }
+  return str;
+}
+
 export default function GraphicalDashboard() {
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState([]);
@@ -80,48 +98,83 @@ export default function GraphicalDashboard() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterMetric, setFilterMetric] = useState("");
 
-  // Fetch data function (used for both mount and refresh)
-  function fetchData() {
+  // Fetch data from /api/data.js (same as data-table.js)
+  useEffect(() => {
     setLoading(true);
-    fetch(GOOGLE_SHEET_CSV_URL)
-      .then((res) => (res.ok ? res.text() : Promise.reject()))
-      .then((csv) => {
-        const [header, ...rows] = csv.trim().split("\n");
-        const keys = header.split(",").map((k) => k.trim().toLowerCase());
-        const parsed = rows
-          .map((row) => {
-            const vals = row.split(",");
-            return Object.fromEntries(
-              vals.map((v, i) => [
-                keys[i],
-                isNaN(Number(v)) || v.trim() === "" ? v : Number(v),
-              ])
-            );
-          })
-          .filter((row) => row.time);
-        setData(parsed);
-
-        // Set full date range but leave dateRange blank
-        const timestamps = parsed
-          .map((row) => new Date(row.time).getTime())
-          .filter(Boolean)
-          .sort((a, b) => a - b);
-        if (timestamps.length) {
-          setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+    fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
+      .then(res => res.json())
+      .then(json => {
+        const mapped = Array.isArray(json.results)
+          ? json.results.map(row => ({
+              time: row.timestamp,
+              temp: row.temperature,
+              bod: row.bod,
+              cod: row.cod,
+              ph: row.ph,
+              tds: row.tds,
+              do: row.do,
+              color: row.color,
+              tss: row.tss
+            }))
+          : [];
+        setData(mapped);
+        // Set full date range
+        if (mapped.length) {
+          const timestamps = mapped
+            .map(row => new Date(row.time).getTime())
+            .filter(Boolean)
+            .sort((a, b) => a - b);
+          if (timestamps.length) {
+            setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+          }
         }
         setLoading(false);
       })
-      .catch(() => setData([]));
-  }
+      .catch(() => {
+        setData([]);
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     setMounted(true);
-    fetchData();
-    // eslint-disable-next-line
   }, []);
 
   function handleRefresh() {
-    fetchData();
+    setLoading(true);
+    fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
+      .then(res => res.json())
+      .then(json => {
+        const mapped = Array.isArray(json.results)
+          ? json.results.map(row => ({
+              time: row.timestamp,
+              temp: row.temperature,
+              bod: row.bod,
+              cod: row.cod,
+              ph: row.ph,
+              tds: row.tds,
+              do: row.do,
+              color: row.color,
+              tss: row.tss
+            }))
+          : [];
+        setData(mapped);
+        // Set full date range
+        if (mapped.length) {
+          const timestamps = mapped
+            .map(row => new Date(row.time).getTime())
+            .filter(Boolean)
+            .sort((a, b) => a - b);
+          if (timestamps.length) {
+            setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+          }
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setData([]);
+        setLoading(false);
+      });
     setDateRange({ from: "", to: "" }); // Clear date fields on refresh
   }
 
@@ -229,7 +282,7 @@ export default function GraphicalDashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={24} />
+              <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
               <YAxis domain={["auto", "auto"]} />
               <Tooltip />
               <Legend />
@@ -278,7 +331,7 @@ export default function GraphicalDashboard() {
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={24} />
+              <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
               <YAxis domain={["auto", "auto"]} />
               <Tooltip />
               <Legend />
@@ -320,7 +373,7 @@ export default function GraphicalDashboard() {
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={24} />
+            <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
             <YAxis domain={["auto", "auto"]} />
             <Tooltip />
             <Legend />
