@@ -19,6 +19,8 @@ import {
 import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
 import '../css/graphical-dashboard.css';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const COLORS = [
   "#e75480",
@@ -184,37 +186,24 @@ export default function GraphicalDashboard() {
   }
 
   // Export helpers
-  function exportCSV() {
-    if (!filteredData.length) return;
-    const keys = Object.keys(filteredData[0]);
-    const csvRows = [
-      keys.join(","),
-      ...filteredData.map((row) =>
-        keys.map((k) => `"${row[k] ?? ""}"`).join(",")
-      ),
-    ];
-    const blob = new Blob([csvRows.join("\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "graphical-dashboard.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  async function exportPNG() {
+    const main = document.querySelector('.graphical-dashboard-main');
+    if (!main) return;
+    const canvas = await html2canvas(main, { backgroundColor: null });
+    const link = document.createElement('a');
+    link.download = 'graphical-dashboard.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   }
 
-  function exportJSON() {
-    if (!filteredData.length) return;
-    const blob = new Blob([JSON.stringify(filteredData, null, 2)], {
-      type: "application/json",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "graphical-dashboard.json";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  async function exportPDF() {
+    const main = document.querySelector('.graphical-dashboard-main');
+    if (!main) return;
+    const canvas = await html2canvas(main, { backgroundColor: '#fff' });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save('graphical-dashboard.pdf');
   }
 
   // Filter data by date range and filter metric
@@ -422,8 +411,10 @@ export default function GraphicalDashboard() {
       <ControlBar
         exportOpen={exportOpen}
         setExportOpen={setExportOpen}
-        exportCSV={exportCSV}
-        exportJSON={exportJSON}
+        exportCSV={exportPNG}
+        exportJSON={exportPDF}
+        exportLabelCSV="Export as Image"
+        exportLabelJSON="Export as PDF"
         dateRange={dateRange}
         fullRange={fullRange}
         handleDateChange={handleDateChange}

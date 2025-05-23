@@ -4,6 +4,8 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
 import '../css/summary-dashboard.css';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const COLORS = [
   "#345995",
@@ -172,37 +174,24 @@ export default function SummaryDashboard() {
     setDateRange((prev) => ({ ...prev, [name]: value }));
   }
 
-  function exportCSV() {
-    const filtered = filteredData;
-    if (!filtered.length) return;
-    const keys = Object.keys(filtered[0]);
-    const csvRows = [
-      keys.join(","),
-      ...filtered.map((row) => keys.map((k) => `"${row[k] ?? ""}"`).join(",")),
-    ];
-    const blob = new Blob([csvRows.join("\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "summary-dashboard.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  async function exportPNG() {
+    const main = document.querySelector('.summary-grid');
+    if (!main) return;
+    const canvas = await html2canvas(main, { backgroundColor: null });
+    const link = document.createElement('a');
+    link.download = 'summary-dashboard.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   }
 
-  function exportJSON() {
-    const filtered = filteredData;
-    if (!filtered.length) return;
-    const blob = new Blob([JSON.stringify(filtered, null, 2)], {
-      type: "application/json",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "summary-dashboard.json";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  async function exportPDF() {
+    const main = document.querySelector('.summary-grid');
+    if (!main) return;
+    const canvas = await html2canvas(main, { backgroundColor: '#fff' });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save('summary-dashboard.pdf');
   }
 
   // Filter data by date range and selected column (metric)
@@ -247,8 +236,10 @@ export default function SummaryDashboard() {
           <ControlBar
             exportOpen={exportOpen}
             setExportOpen={setExportOpen}
-            exportCSV={exportCSV}
-            exportJSON={exportJSON}
+            exportCSV={exportPNG}
+            exportJSON={exportPDF}
+            exportLabelCSV="Export as Image"
+            exportLabelJSON="Export as PDF"
             dateRange={dateRange}
             fullRange={fullRange}
             handleDateChange={handleDateChange}

@@ -17,7 +17,6 @@ export default async function handler(req, res) {
       });
 
       const data = await response.json();
-      console.info("Login response ----------------:", data);
       if (!response.ok) {
         throw new Error(data.detail || "Login failed");
       }
@@ -30,7 +29,7 @@ export default async function handler(req, res) {
       res.setHeader("Set-Cookie", cookie.serialize("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env?.NODE_ENV !== "development",
-        maxAge: 60 * 60 * 24, // 1 day
+        maxAge: 60 * 60 * 24 * 5, // 5 day
         sameSite: "strict",
         path: "/",
       }));

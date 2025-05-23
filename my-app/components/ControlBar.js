@@ -6,6 +6,8 @@ const ControlBar = ({
   setExportOpen,
   exportCSV,
   exportJSON,
+  exportLabelCSV = "Export as CSV",
+  exportLabelJSON = "Export as JSON",
   dateRange,
   fullRange,
   handleDateChange,
@@ -15,6 +17,8 @@ const ControlBar = ({
   handleRefresh,
   loading
 }) => {
+  // Detect if exportCSV or exportJSON are undefined (for dashboards)
+  const isImageExport = !exportJSON;
   return (
     <div className="control-bar-sticky">
       <div className="control-bar-main">
@@ -28,24 +32,38 @@ const ControlBar = ({
           </button>
           {exportOpen && (
             <div className="control-bar-export-dropdown">
-              <button
-                className="control-bar-export-item"
-                onClick={() => {
-                  exportCSV();
-                  setExportOpen(false);
-                }}
-              >
-                Export as CSV
-              </button>
-              <button
-                className="control-bar-export-item"
-                onClick={() => {
-                  exportJSON();
-                  setExportOpen(false);
-                }}
-              >
-                Export as JSON
-              </button>
+              {isImageExport ? (
+                <button
+                  className="control-bar-export-item"
+                  onClick={() => {
+                    exportCSV();
+                    setExportOpen(false);
+                  }}
+                >
+                  Export as Image
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="control-bar-export-item"
+                    onClick={() => {
+                      exportCSV();
+                      setExportOpen(false);
+                    }}
+                  >
+                    {exportLabelCSV}
+                  </button>
+                  <button
+                    className="control-bar-export-item"
+                    onClick={() => {
+                      exportJSON();
+                      setExportOpen(false);
+                    }}
+                  >
+                    {exportLabelJSON}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

@@ -116,7 +116,15 @@ export default function DataTable() {
     exportOpen,
     setExportOpen,
     exportCSV: () => exportCSV(filteredData),
-    exportJSON: undefined, // Not used here
+    exportJSON: () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredData, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "data-table.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    },
     dateRange,
     fullRange,
     handleDateChange,
@@ -142,7 +150,11 @@ export default function DataTable() {
   return (
     <div className="data-table-bg">
       <PageHeader title="Data Table" />
-      <ControlBar {...controlBarProps} />
+      <ControlBar
+        {...controlBarProps}
+        exportLabelCSV="Export as CSV"
+        exportLabelJSON="Export as JSON"
+      />
       {/* Table */}
       <div className="data-table-header">
         <div className="dt-table-container">
