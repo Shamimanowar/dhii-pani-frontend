@@ -1,0 +1,16 @@
+/* DataTableBody extracted styles */
+.data-table-row {
+  transition: background 0.2s;
+}
+.data-table-row.even {
+  background: #f8f9fc;
+}
+.data-table-row.odd {
+  background: #fff;
+}
+.data-table-row:hover {
+  background: #e6eaff !important;
+}
+.data-table-td.out-of-range {
+  background: #ffeaea !important;
+}

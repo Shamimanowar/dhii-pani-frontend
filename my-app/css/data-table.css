@@ -1,0 +1,106 @@
+/* Data Table extracted styles */
+.data-table-bg {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #f7f8fa 0%, #e3e6f3 100%);
+  padding: 0;
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+}
+.dt-table-container {
+  width: 1200px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+  overflow: hidden;
+  border: 1.5px solid #ececff;
+  transition: box-shadow 0.3s;
+  margin-bottom: 24px;
+}
+.dt-table-container:hover {
+  box-shadow: 0 12px 40px 0 rgba(118, 75, 162, 0.13);
+}
+.dt-row-anim {
+  animation: dtRowFadeIn 0.6s;
+}
+@keyframes dtRowFadeIn {
+  from { opacity: 0; transform: translateY(16px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.dt-refresh-anim {
+  animation: dtSpin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes dtSpin {
+  100% { transform: rotate(360deg);}
+}
+.data-table-header {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  width: 100%;
+}
+.data-table-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  font-size: 16px;
+}
+.data-table-thead {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 700;
+}
+.data-table-th {
+  padding: 12px 18px;
+  border-bottom: 2px solid #ececff;
+  text-align: left;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+.data-table-td {
+  padding: 11px 18px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  font-size: 15px;
+}
+.data-table-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+  gap: 8px;
+}
+.data-table-pagination-btn {
+  padding: 7px 16px;
+  border: none;
+  background: #f3f3f3;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 16px;
+  color: #6c63ff;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.data-table-pagination-btn.active {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 700;
+  transform: scale(1.08);
+}
+.data-table-pagination-btn:disabled {
+  background: #eaeaea;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.data-table-note {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  color: #888;
+  font-size: 14px;
+}
+.data-table-entries {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  color: #888;
+  font-size: 15px;
+}

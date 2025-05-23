@@ -1,0 +1,102 @@
+/* Summary Dashboard extracted styles */
+.summary-dashboard-bg {
+  background: linear-gradient(120deg, #f7f8fa 0%, #e3e6f3 100%);
+  padding: 0;
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+.summary-dashboard-header {
+  background: linear-gradient(120deg, rgb(247, 248, 250) 0%, rgb(227, 230, 243) 100%);
+  border-bottom: 1.5px solid #ececff;
+  box-shadow: 0 4px 24px #6c63ff10;
+  padding: 0;
+  top: 0;
+  z-index: 100;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 60px;
+  margin: 40px auto;
+  width: 100%;
+  max-width: 1600px;
+  box-sizing: border-box;
+  padding: 0 24px;
+}
+.summary-card {
+  background: linear-gradient(120deg, #fff 60%, #f7f8fa 100%);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px #6c63ff18;
+  padding: 24px 18px 18px 18px;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1.5px solid #ececff;
+  transition: box-shadow 0.2s;
+}
+.summary-card-title {
+  font-weight: 800;
+  font-size: 20px;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+  color: #6c63ff;
+  text-align: center;
+}
+.summary-chart-container {
+  width: 100%;
+  min-width: 0;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.summary-stats {
+  margin-top: 14px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 15px;
+  color: #444;
+}
+.summary-empty {
+  text-align: center;
+  color: #6c63ff;
+  font-weight: 600;
+  font-size: 22px;
+  margin-top: 80px;
+  opacity: 0.8;
+  letter-spacing: 1px;
+}
+.dt-refresh-anim {
+  animation: dtSpin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes dtSpin {
+  100% { transform: rotate(360deg); }
+}
+@media (max-width: 1400px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1000px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    padding: 0 8px;
+  }
+}
+@media (max-width: 700px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0 2px;
+  }
+  .summary-card {
+    padding: 10px 4px 8px 4px;
+  }
+}

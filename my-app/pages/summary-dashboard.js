@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import tableData from "../data/tableData";
 import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
+import '../css/summary-dashboard.css';
 
 const COLORS = [
   "#345995",
@@ -83,46 +84,26 @@ function getPieData(data, key) {
 function CustomTooltip({ active, payload, stats, col }) {
   if (active && payload && payload.length && payload[0] && payload[0].payload) {
     return (
-      <div
-        style={{
-          background: "rgba(255,255,255,0.98)",
-          border: "1px solid #ececff",
-          borderRadius: 16,
-          boxShadow: "0 8px 32px #6c63ff22",
-          padding: 18,
-          minWidth: 200,
-          fontSize: 15,
-          color: "#222",
-          pointerEvents: "auto",
-        }}
-      >
-        <div
-          style={{
-            fontWeight: 800,
-            fontSize: 18,
-            marginBottom: 8,
-            color: "#6c63ff",
-            letterSpacing: 1,
-          }}
-        >
+      <div className="custom-tooltip">
+        <div className="tooltip-title">
           {col.toUpperCase()}
         </div>
-        <div style={{ marginBottom: 6 }}>
+        <div className="tooltip-item">
           <b>{payload[0].name}</b>: {payload[0].value}
         </div>
-        <div>
+        <div className="tooltip-item">
           Mean: <b>{stats.mean}</b>
         </div>
-        <div>
+        <div className="tooltip-item">
           Min: <b>{stats.min}</b>
         </div>
-        <div>
+        <div className="tooltip-item">
           Max: <b>{stats.max}</b>
         </div>
-        <div>
+        <div className="tooltip-item">
           Outside Spec: <b>{stats.outsideSpec}</b>
         </div>
-        <div>
+        <div className="tooltip-item">
           Missing Data: <b>{stats.missing}</b>
         </div>
       </div>
@@ -237,26 +218,8 @@ export default function SummaryDashboard() {
   );
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(120deg, #f7f8fa 0%, #e3e6f3 100%)",
-        padding: 0,
-        fontFamily: "Inter, Segoe UI, Arial, sans-serif",
-        position: "relative",
-        overflowX: "hidden", // Prevent X-axis overflow
-      }}
-    >
-      <div
-        style={{
-          background: "linear-gradient(120deg, rgb(247, 248, 250) 0%, rgb(227, 230, 243) 100%)",
-          borderBottom: "1.5px solid #ececff",
-          boxShadow: "0 4px 24px #6c63ff10",
-          padding: 0,
-          top: 0,
-          zIndex: 100,
-        }}
-      >
+    <div className="summary-dashboard-bg">
+      <div className="summary-dashboard-header">
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           <PageHeader title="Summary Dashboard" />
         </div>
@@ -277,7 +240,7 @@ export default function SummaryDashboard() {
             handleRefresh={handleRefresh}
             loading={loading}
           />
-          <div className="summary-grid" >
+          <div className="summary-grid">
             {columns.map((col, idx) => {
               const stats = getColumnStats(filteredData, col);
               const pieData = getPieData(filteredData, col);
@@ -331,94 +294,6 @@ export default function SummaryDashboard() {
             : "No data to display. Please select a date range or adjust filters."}
         </div>
       )}
-      <style>{`
-        .summary-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 60px;
-          margin: 40px auto;
-          width: 100%;
-          max-width: 1600px;
-          box-sizing: border-box;
-          padding: 0 24px;
-        }
-        .summary-card {
-          background: linear-gradient(120deg, #fff 60%, #f7f8fa 100%);
-          border-radius: 18px;
-          box-shadow: 0 8px 32px #6c63ff18;
-          padding: 24px 18px 18px 18px;
-          width: 100%;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          border: 1.5px solid #ececff;
-          transition: box-shadow 0.2s;
-        }
-        .summary-card-title {
-          font-weight: 800;
-          font-size: 20px;
-          margin-bottom: 14px;
-          letter-spacing: 1px;
-          color: #6c63ff;
-          text-align: center;
-        }
-        .summary-chart-container {
-          width: 100%;
-          min-width: 0;
-          height: 220px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .summary-stats {
-          margin-top: 14px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          font-size: 15px;
-          color: #444;
-        }
-        .summary-empty {
-          text-align: center;
-          color: #6c63ff;
-          font-weight: 600;
-          font-size: 22px;
-          margin-top: 80px;
-          opacity: 0.8;
-          letter-spacing: 1px;
-        }
-        .dt-refresh-anim {
-          animation: dtSpin 0.7s linear infinite;
-          display: inline-block;
-        }
-        @keyframes dtSpin {
-          100% { transform: rotate(360deg); }
-        }
-        @media (max-width: 1400px) {
-          .summary-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-        }
-        @media (max-width: 1000px) {
-          .summary-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-            padding: 0 8px;
-          }
-        }
-        @media (max-width: 700px) {
-          .summary-grid {
-            grid-template-columns: 1fr;
-            gap: 12px;
-            padding: 0 2px;
-          }
-          .summary-card {
-            padding: 10px 4px 8px 4px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

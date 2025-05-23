@@ -8,6 +8,7 @@ import DataTableBody from '../components/DataTableBody';
 import cookie from 'cookie';
 import { GetServerSideProps } from 'next';
 import ControlBar from '../components/ControlBar';
+import '../css/data-table.css';
 
 const PAGE_SIZE = 20;
 const GOOGLE_SHEET_CSV_URL =
@@ -103,73 +104,24 @@ export default function DataTable() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(120deg, #f7f8fa 0%, #e3e6f3 100%)',
-      padding: 0,
-      fontFamily: 'Inter, Segoe UI, Arial, sans-serif'
-    }}>
-      <style>{`
-        .dt-table-container {
-          width: 1200px;
-          background: #fff;
-          border-radius: 18px;
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
-          overflow: hidden;
-          border: 1.5px solid #ececff;
-          transition: box-shadow 0.3s;
-          margin-bottom: 24px;
-        }
-        .dt-table-container:hover {
-          box-shadow: 0 12px 40px 0 rgba(118, 75, 162, 0.13);
-        }
-        .dt-row-anim {
-          animation: dtRowFadeIn 0.6s;
-        }
-        @keyframes dtRowFadeIn {
-          from { opacity: 0; transform: translateY(16px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-        .dt-refresh-anim {
-          animation: dtSpin 0.7s linear infinite;
-          display: inline-block;
-        }
-        @keyframes dtSpin {
-          100% { transform: rotate(360deg);}
-        }
-      `}</style>
+    <div className="data-table-bg">
       <PageHeader title="Data Table" />
       <ControlBar {...controlBarProps} />
       {/* Table */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: 32,
-        width: '100%'
-      }}>
+      <div className="data-table-header">
         <div className="dt-table-container">
-          <table style={{
-            borderCollapse: 'collapse',
-            width: '100%',
-            background: '#fff',
-            fontSize: 16,
-
-          }}>
-            <thead>
-              <tr style={{
-                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-                color: '#fff',
-                fontWeight: 700
-              }}>
-                <th style={thStyle}>TIME</th>
-                <th style={thStyle}>TEMP</th>
-                <th style={thStyle}>BOD</th>
-                <th style={thStyle}>COD</th>
-                <th style={thStyle}>PH</th>
-                <th style={thStyle}>TDS</th>
-                <th style={thStyle}>DO</th>
-                <th style={thStyle}>COLOR</th>
-                <th style={thStyle}>TSS</th>
+          <table className="data-table-table">
+            <thead className="data-table-thead">
+              <tr>
+                <th className="data-table-th">TIME</th>
+                <th className="data-table-th">TEMP</th>
+                <th className="data-table-th">BOD</th>
+                <th className="data-table-th">COD</th>
+                <th className="data-table-th">PH</th>
+                <th className="data-table-th">TDS</th>
+                <th className="data-table-th">DO</th>
+                <th className="data-table-th">COLOR</th>
+                <th className="data-table-th">TSS</th>
               </tr>
             </thead>
             <DataTableBody data={pagedData} refreshing={refreshing} tdStyle={tdStyle} />
@@ -177,47 +129,30 @@ export default function DataTable() {
         </div>
       </div>
       {/* Table Footer */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: 16,
-        color: '#888',
-        fontSize: 15
-      }}>
+      <div className="data-table-entries">
         Showing {pagedData.length > 0 ? (PAGE_SIZE * (page - 1) + 1) : 0} to {PAGE_SIZE * (page - 1) + pagedData.length} of {TOTAL_FILTERED} entries
       </div>
       {/* Pagination */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: 18,
-        gap: 8
-      }}>
-        <button disabled={page === 1} style={page === 1 ? paginationBtnDisabled : paginationBtn} onClick={() => handlePageChange(page - 1)}>Previous</button>
+      <div className="data-table-pagination">
+        <button disabled={page === 1} className={`data-table-pagination-btn${page === 1 ? ' disabled' : ''}`} onClick={() => handlePageChange(page - 1)}>Previous</button>
         {[...Array(Math.min(5, TOTAL_FILTERED_PAGES)).keys()].map(i => {
           const p = i + 1;
           return (
             <button
               key={p}
-              style={page === p ? paginationBtnActive : paginationBtn}
+              className={`data-table-pagination-btn${page === p ? ' active' : ''}`}
               onClick={() => handlePageChange(p)}
             >{p}</button>
           );
         })}
         {TOTAL_FILTERED_PAGES > 5 && <span style={{ alignSelf: 'center', fontSize: 18 }}>...</span>}
         {TOTAL_FILTERED_PAGES > 5 && (
-          <button style={paginationBtn} onClick={() => handlePageChange(TOTAL_FILTERED_PAGES)}>{TOTAL_FILTERED_PAGES}</button>
+          <button className="data-table-pagination-btn" onClick={() => handlePageChange(TOTAL_FILTERED_PAGES)}>{TOTAL_FILTERED_PAGES}</button>
         )}
-        <button disabled={page === TOTAL_FILTERED_PAGES} style={page === TOTAL_FILTERED_PAGES ? paginationBtnDisabled : paginationBtn} onClick={() => handlePageChange(page + 1)}>Next</button>
+        <button disabled={page === TOTAL_FILTERED_PAGES} className={`data-table-pagination-btn${page === TOTAL_FILTERED_PAGES ? ' disabled' : ''}`} onClick={() => handlePageChange(page + 1)}>Next</button>
       </div>
       {/* Note */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: 24,
-        color: '#888',
-        fontSize: 14
-      }}>
+      <div className="data-table-note">
         {/* <span>This table uses live data from Google Sheets. To update, edit the sheet.</span> */}
       </div>
     </div>

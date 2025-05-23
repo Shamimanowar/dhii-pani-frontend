@@ -1,5 +1,6 @@
 import React from 'react';
 import { isOutOfRange } from '../utils/columnLimits';
+import '../css/data-table-body.css';
 
 export default function DataTableBody({ data, refreshing, tdStyle }) {
   return (
@@ -7,23 +8,19 @@ export default function DataTableBody({ data, refreshing, tdStyle }) {
       {data.map((row, i) => (
         <tr
           key={i}
-          className={refreshing ? '' : 'dt-row-anim'}
-          style={{
-            background: i % 2 === 0 ? '#f8f9fc' : '#fff',
-            transition: 'background 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#e6eaff'}
-          onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#f8f9fc' : '#fff'}
+          className={`data-table-row ${i % 2 === 0 ? 'even' : 'odd'}${refreshing ? '' : ' dt-row-anim'}`}
+          onMouseEnter={e => e.currentTarget.classList.add('hover')}
+          onMouseLeave={e => e.currentTarget.classList.remove('hover')}
         >
-          <td style={tdStyle}>{row.time}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('temp', row.temp) ? '#ffeaea' : '#fff' }}>{row.temp}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('bod', row.bod) ? '#ffeaea' : '#fff' }}>{row.bod}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('cod', row.cod) ? '#ffeaea' : '#fff' }}>{row.cod}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('ph', row.ph) ? '#ffeaea' : '#fff' }}>{row.ph}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('tds', row.tds) ? '#ffeaea' : '#fff' }}>{row.tds}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('do', row.do) ? '#ffeaea' : '#fff' }}>{row.do}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('color', row.color) ? '#ffeaea' : '#fff' }}>{row.color}</td>
-          <td style={{ ...tdStyle, background: isOutOfRange('tss', row.tss) ? '#ffeaea' : '#fff' }}>{row.tss}</td>
+          <td className="data-table-td">{row.time}</td>
+          <td className={`data-table-td${isOutOfRange('temp', row.temp) ? ' out-of-range' : ''}`}>{row.temp}</td>
+          <td className={`data-table-td${isOutOfRange('bod', row.bod) ? ' out-of-range' : ''}`}>{row.bod}</td>
+          <td className={`data-table-td${isOutOfRange('cod', row.cod) ? ' out-of-range' : ''}`}>{row.cod}</td>
+          <td className={`data-table-td${isOutOfRange('ph', row.ph) ? ' out-of-range' : ''}`}>{row.ph}</td>
+          <td className={`data-table-td${isOutOfRange('tds', row.tds) ? ' out-of-range' : ''}`}>{row.tds}</td>
+          <td className={`data-table-td${isOutOfRange('do', row.do) ? ' out-of-range' : ''}`}>{row.do}</td>
+          <td className={`data-table-td${isOutOfRange('color', row.color) ? ' out-of-range' : ''}`}>{row.color}</td>
+          <td className={`data-table-td${isOutOfRange('tss', row.tss) ? ' out-of-range' : ''}`}>{row.tss}</td>
         </tr>
       ))}
     </tbody>

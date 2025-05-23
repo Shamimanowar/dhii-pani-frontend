@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
+import '../css/graphical-dashboard.css';
 
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpUL4EZZPzXJDgjqKncdHpPk9G0-fwGZYepx5cJvW5OAgeGUbVkmQ-kBTYCvqlNz6Za8RYMFxD5B2T/pub?gid=1991120722&single=true&output=csv";
@@ -208,8 +209,8 @@ export default function GraphicalDashboard() {
 
     if (metric === "tds") {
       return (
-        <div key={metric} style={cardStyle}>
-          <div style={cardTitleStyle}>{label}</div>
+        <div key={metric} className="card">
+          <div className="card-title">{label}</div>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart
               data={filteredData}
@@ -269,8 +270,8 @@ export default function GraphicalDashboard() {
     }
     if (metric === "tss") {
       return (
-        <div key={metric} style={cardStyle}>
-          <div style={cardTitleStyle}>{label}</div>
+        <div key={metric} className="card">
+          <div className="card-title">{label}</div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
               data={filteredData}
@@ -311,8 +312,8 @@ export default function GraphicalDashboard() {
     }
     // Default: LineChart
     return (
-      <div key={metric} style={cardStyle}>
-        <div style={cardTitleStyle}>{label}</div>
+      <div key={metric} className="card">
+        <div className="card-title">{label}</div>
         <ResponsiveContainer width="100%" height={260}>
           <LineChart
             data={filteredData}
@@ -361,14 +362,7 @@ export default function GraphicalDashboard() {
 
   // The main component return
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(120deg, #f7f8fa 0%, #e3e6f3 100%)",
-        padding: 0,
-        fontFamily: "Inter, Segoe UI, Arial, sans-serif",
-      }}
-    >
+    <div className="graphical-dashboard-bg">
       <PageHeader title="Graphical Dashboard" />
       {/* Modern controls bar */}
       <ControlBar
@@ -385,43 +379,14 @@ export default function GraphicalDashboard() {
         handleRefresh={handleRefresh}
         loading={loading}
       />
-      <style>{`
-        .dt-refresh-anim {
-          animation: dtSpin 0.7s linear infinite;
-          display: inline-block;
-        }
-        @keyframes dtSpin {
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
       {/* Main caller */}
       {mounted && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
-            gap: 36,
-            marginTop: 80,
-            marginLeft: 40,
-            marginRight: 40,
-            marginBottom: 40,
-          }}
-        >
+        <div className="graphical-dashboard-main">
           {metrics.map((metric, idx) => renderChart(metric, idx))}
         </div>
       )}
       {!filteredData.length && (
-        <div
-          style={{
-            textAlign: "center",
-            color: "#6c63ff",
-            fontWeight: 600,
-            fontSize: 22,
-            marginTop: 80,
-            opacity: 0.8,
-            letterSpacing: 1,
-          }}
-        >
+        <div className="no-data-message">
           {loading
             ? "Loading..."
             : "No data to display. Please select a date range."}
@@ -442,26 +407,4 @@ export const getServerSideProps = async ({ req }) => {
   }
 
   return { props: {} };
-};
-
-const cardStyle = {
-  background: "linear-gradient(120deg, #fff 60%, #f7f8fa 100%)",
-  borderRadius: 18,
-  boxShadow: "0 8px 32px #6c63ff18",
-  padding: "24px 18px 12px 18px",
-  minWidth: 0,
-  minHeight: 340,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "stretch",
-  marginBottom: 8,
-  border: "1.5px solid #ececff",
-};
-
-const cardTitleStyle = {
-  fontWeight: 700,
-  fontSize: 20,
-  marginBottom: 12,
-  color: "#6c63ff",
-  letterSpacing: 1,
 };
