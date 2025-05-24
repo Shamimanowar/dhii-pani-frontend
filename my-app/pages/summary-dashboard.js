@@ -62,8 +62,8 @@ function getColumnStats(data, key, limit) {
   } else {
     inRangeCount = values.length;
   }
-  const outsideSpec = ((outOfRangeCount / values.length) * 100).toFixed(0) + ' %';
-  const missing = (((data.length - values.length) / data.length) * 100).toFixed(0) + ' %';
+  const outsideSpec = data.length > 0 ? ((outOfRangeCount / data.length) * 100).toFixed(0) + ' %' : '-';
+  const missing = data.length > 0 ? (((data.length - values.length) / data.length) * 100).toFixed(0) + ' %' : '-';
 
   return { mean, avg, min, max, outsideSpec, missing, outOfRangeCount, inRangeCount };
 }
@@ -75,7 +75,7 @@ function getPieData(data, key, limit) {
   let inRange = 0, outOfRange = 0, missing = 0;
   data.forEach(row => {
     let v = row[key];
-    // For temperature, force numeric conversion and handle string numbers
+    // Always treat empty string, null, undefined, or NaN as missing for ALL columns (including temperature)
     if (typeof v === 'string' && v.trim() !== '') v = Number(v);
     const isMissing = v === null || v === undefined || v === '' || isNaN(v);
     if (isMissing) {
@@ -101,7 +101,6 @@ function getPieData(data, key, limit) {
 function CustomTooltip({ active, payload, stats, col }) {
   if (active && payload && payload.length && payload[0] && payload[0].payload) {
     // Calculate total for percentage
-    const total = stats.inRangeCount + stats.outOfRangeCount + (stats.missing !== '-' ? Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount + (stats.missing !== '-' ? Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount)) : 0))) : 0);
     const missingCount = (typeof stats.missing === 'string' && stats.missing.endsWith('%'))
       ? Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount + Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount))))
       : (stats.missing || 0);
@@ -385,6 +384,24 @@ export default function SummaryDashboard() {
             : "No data to display. Please select a date range or adjust filters."}
         </div>
       )}
+      {/* Show total number of data points used for pie charts */}
+      <div style={{
+        marginTop: 32,
+        textAlign: 'center',
+        fontSize: 18,
+        color: '#345995',
+        fontWeight: 600,
+        letterSpacing: 0.5,
+        background: '#f7fafd',
+        borderRadius: 12,
+        padding: '12px 0',
+        boxShadow: '0 2px 8px 0 #e6e6e6',
+        maxWidth: 340,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}>
+        Total data points: <span style={{ color: '#222', fontWeight: 700 }}>{filteredData.length}</span>
+      </div>
     </div>
   );
 }
