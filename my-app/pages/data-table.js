@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import PageHeader from '../components/PageHeader';
-import { isOutOfRange } from '../utils/columnLimits';
 import { exportCSV, exportExcel } from '../utils/exportUtils';
 import DataTableBody from '../components/DataTableBody';
 import cookie from 'cookie';
 import { GetServerSideProps } from 'next';
 import ControlBar from '../components/ControlBar';
 import '../css/data-table.css';
-// Removed sensorData import
 
 const PAGE_SIZE = 20;
 
@@ -24,45 +22,52 @@ export default function DataTable() {
   const [prevUrl, setPrevUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
+  const [filterApplied, setFilterApplied] = useState(false);
   const autoRefreshTimer = useRef(null);
 
   // Fetch data from /api/data.js
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      let url = `/api/data?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
-      try {
-        const res = await fetch(url, { credentials: 'include' });
-        const json = await res.json();
-        setCount(json.count || 0);
-        setNextUrl(json.next);
-        setPrevUrl(json.previous);
-        // Map backend structure to table rows
-        setData(
-          Array.isArray(json.results)
-            ? json.results.map(row => ({
-                time: row.timestamp,
-                temp: row.temperature,
-                bod: row.bod,
-                cod: row.cod,
-                ph: row.ph,
-                tds: row.tds,
-                do: row.do,
-                color: row.color,
-                tss: row.tss
-              }))
-            : []
-        );
-      } catch (err) {
-        setData([]);
-        setCount(0);
-        setNextUrl(null);
-        setPrevUrl(null);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchData(customRange) {
+    setLoading(true);
+    let url = `/api/data?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
+    if (customRange && (customRange.from || customRange.to)) {
+      const params = [];
+      if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
+      if (customRange.to) params.push(`timestamp_to=${encodeURIComponent(customRange.to)}`);
+      url += `&${params.join('&')}`;
     }
-    fetchData();
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const json = await res.json();
+      setCount(json.count || 0);
+      setNextUrl(json.next);
+      setPrevUrl(json.previous);
+      setData(
+        Array.isArray(json.results)
+          ? json.results.map(row => ({
+              time: row.timestamp,
+              temp: row.temperature,
+              bod: row.bod,
+              cod: row.cod,
+              ph: row.ph,
+              tds: row.tds,
+              do: row.do,
+              color: row.color,
+              tss: row.tss
+            }))
+          : []
+      );
+    } catch (err) {
+      setData([]);
+      setCount(0);
+      setNextUrl(null);
+      setPrevUrl(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!filterApplied) fetchData();
   }, [page]);
 
   // Set full date range
@@ -78,48 +83,19 @@ export default function DataTable() {
     }
   }, [data]);
 
-  // Date picker handler
-  function handleDateChange(e) {
-    const { name, value } = e.target;
-    setDateRange(prev => ({ ...prev, [name]: value }));
-    setPage(1); // Reset to first page on filter
+  function handleDateFilterApply() {
+    setFilterApplied(true);
+    setPage(1);
+    fetchData(dateRange);
   }
-
-  // Filter data by date range (client-side)
-  const filteredData = Array.isArray(data)
-    ? data.filter(row => {
-        if (!row.time) return false;
-        const t = new Date(row.time).getTime();
-        let inDateRange = true;
-        if (dateRange.from && dateRange.to) {
-          const from = new Date(dateRange.from).getTime();
-          const to = new Date(dateRange.to).getTime();
-          inDateRange = t >= from && t <= to;
-        }
-        if ((dateRange.from && !dateRange.to) || (!dateRange.from && dateRange.to)) {
-          inDateRange = false;
-        }
-        return inDateRange;
-      })
-    : [];
-
-  const TOTAL_FILTERED = filteredData.length;
-  const TOTAL_FILTERED_PAGES = Math.max(1, Math.ceil(TOTAL_FILTERED / PAGE_SIZE));
-
-  // Clamp page if needed after filtering
-  useEffect(() => {
-    if (page > TOTAL_FILTERED_PAGES) setPage(TOTAL_FILTERED_PAGES || 1);
-  }, [TOTAL_FILTERED_PAGES, page]);
-
-  const pagedData = filteredData;
 
   // ControlBar props (date picker enabled)
   const controlBarProps = {
     exportOpen,
     setExportOpen,
-    exportCSV: () => exportCSV(filteredData),
+    exportCSV: () => exportCSV(data),
     exportJSON: () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredData, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
       downloadAnchorNode.setAttribute("download", "data-table.json");
@@ -128,8 +104,11 @@ export default function DataTable() {
       downloadAnchorNode.remove();
     },
     dateRange,
-    fullRange,
-    handleDateChange,
+    handleDateChange: (e) => {
+      const { name, value } = e.target;
+      setDateRange(prev => ({ ...prev, [name]: value }));
+    },
+    onDateFilterApply: handleDateFilterApply,
     filterMetric: '',
     setFilterMetric: () => {},
     COLUMN_LABELS: {},
@@ -162,6 +141,8 @@ export default function DataTable() {
       if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
     };
   }, [autoRefreshInterval]);
+
+  const pagedData = data;
 
   return (
     <div className="data-table-bg">

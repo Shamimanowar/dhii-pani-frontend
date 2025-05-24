@@ -97,10 +97,53 @@ export default function GraphicalDashboard() {
   const autoRefreshTimer = useRef(null);
 
   // Date range state - start blank
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [fullRange, setFullRange] = useState([0, 0]);
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterMetric, setFilterMetric] = useState("");
+  const [filterApplied, setFilterApplied] = useState(false);
+
+  async function fetchData(customRange) {
+    setLoading(true);
+    let url = `/api/data?limit=1000&offset=0`;
+    if (customRange && (customRange.from || customRange.to)) {
+      const params = [];
+      if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
+      if (customRange.to) params.push(`timestamp_to=${encodeURIComponent(customRange.to)}`);
+      url += `&${params.join('&')}`;
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const json = await res.json();
+      const mapped = Array.isArray(json.results)
+        ? json.results.map(row => ({
+            time: row.timestamp,
+            temp: row.temperature,
+            bod: row.bod,
+            cod: row.cod,
+            ph: row.ph,
+            tds: row.tds,
+            do: row.do,
+            color: row.color,
+            tss: row.tss
+          }))
+        : [];
+      setData(mapped);
+      if (mapped.length) {
+        const timestamps = mapped
+          .map(row => new Date(row.time).getTime())
+          .filter(Boolean)
+          .sort((a, b) => a - b);
+        if (timestamps.length) {
+          setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+        }
+      }
+      setLoading(false);
+    } catch {
+      setData([]);
+      setLoading(false);
+    }
+  }
 
   // Fetch data from /api/data.js (same as data-table.js)
   useEffect(() => {
@@ -194,9 +237,9 @@ export default function GraphicalDashboard() {
     setDateRange({ from: "", to: "" }); // Clear date fields on refresh
   }
 
-  function handleDateChange(e) {
-    const { name, value } = e.target;
-    setDateRange((prev) => ({ ...prev, [name]: value }));
+  function handleDateFilterApply() {
+    setFilterApplied(true);
+    fetchData(dateRange);
   }
 
   // Export helpers
@@ -220,37 +263,6 @@ export default function GraphicalDashboard() {
     pdf.save('graphical-dashboard.pdf');
   }
 
-  // Filter data by date range and filter metric
-  const filteredData = data
-    .filter((row) => {
-      if (!row.time) return false;
-      const t = new Date(row.time).getTime();
-      // If both date fields are blank, show all data
-      let inDateRange = true;
-      if (dateRange.from && dateRange.to) {
-        const from = new Date(dateRange.from).getTime();
-        const to = new Date(dateRange.to).getTime();
-        inDateRange = t >= from && t <= to;
-      }
-      // If only one is set, don't show any data until both are set (optional: comment out to allow partial filter)
-      if (
-        (dateRange.from && !dateRange.to) ||
-        (!dateRange.from && dateRange.to)
-      ) {
-        inDateRange = false;
-      }
-      const metricOk = filterMetric
-        ? row[filterMetric] !== undefined &&
-          row[filterMetric] !== null &&
-          row[filterMetric] !== ""
-        : true;
-      return inDateRange && metricOk;
-    })
-    .sort((a, b) => {
-      if (sortOrder === "asc") return a.time.localeCompare(b.time);
-      return b.time.localeCompare(a.time);
-    });
-
   // Only show the selected metric, or all if none selected
   const metrics = Object.keys(COLUMN_LABELS).filter(
     (m) => !filterMetric || m === filterMetric
@@ -259,7 +271,7 @@ export default function GraphicalDashboard() {
 
   // Helper to render a modern card for each metric
   function renderChart(metric, idx) {
-    if (!filteredData.length) return null;
+    if (!data.length) return null;
     const color = COLORS[idx % COLORS.length];
     const label = COLUMN_LABELS[metric] || metric.toUpperCase();
     const limits = LIMITS[metric];
@@ -270,7 +282,7 @@ export default function GraphicalDashboard() {
           <div className="card-title">{label}</div>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart
-              data={filteredData}
+              data={data}
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
@@ -331,7 +343,7 @@ export default function GraphicalDashboard() {
           <div className="card-title">{label}</div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
-              data={filteredData}
+              data={data}
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -373,7 +385,7 @@ export default function GraphicalDashboard() {
         <div className="card-title">{label}</div>
         <ResponsiveContainer width="100%" height={260}>
           <LineChart
-            data={filteredData}
+            data={data}
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
@@ -431,7 +443,11 @@ export default function GraphicalDashboard() {
         exportLabelJSON="Export as PDF"
         dateRange={dateRange}
         fullRange={fullRange}
-        handleDateChange={handleDateChange}
+        handleDateChange={(e) => {
+          const { name, value } = e.target;
+          setDateRange(prev => ({ ...prev, [name]: value }));
+        }}
+        onDateFilterApply={handleDateFilterApply}
         filterMetric={filterMetric}
         setFilterMetric={setFilterMetric}
         COLUMN_LABELS={COLUMN_LABELS}
@@ -446,7 +462,7 @@ export default function GraphicalDashboard() {
           {metrics.map((metric, idx) => renderChart(metric, idx))}
         </div>
       )}
-      {!filteredData.length && (
+      {!data.length && (
         <div className="no-data-message">
           {loading
             ? "Loading..."

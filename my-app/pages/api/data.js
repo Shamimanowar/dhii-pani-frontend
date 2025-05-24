@@ -5,9 +5,9 @@ export default async function handler(req, res) {
   const cookies = cookie.parse(req.headers.cookie || '');
   const accessToken = cookies.accessToken || cookies.accessTokenJS || '';
 
-  // Forward query params (limit, offset, etc)
-  const { limit = 20, offset = 0 } = req.query;
-  const url = `http://127.0.0.1:8080/v1/core/sensor_data/?limit=${limit}&offset=${offset}`;
+  // Forward all query params (including timestamp_from, timestamp_to, etc)
+  const params = new URLSearchParams(req.query).toString();
+  const url = `http://127.0.0.1:8080/v1/core/sensor_data/?${params}`;
 
   try {
     const apiRes = await fetch(url, {

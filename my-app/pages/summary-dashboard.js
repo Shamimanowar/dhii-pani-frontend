@@ -115,13 +115,14 @@ function CustomTooltip({ active, payload, stats, col }) {
 
 export default function SummaryDashboard() {
   const [mounted, setMounted] = useState(false);
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [fullRange, setFullRange] = useState([0, 0]);
   const [exportOpen, setExportOpen] = useState(false);
   const [filterColumn, setFilterColumn] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
+  const [filterApplied, setFilterApplied] = useState(false);
   const autoRefreshTimer = useRef(null);
 
   useEffect(() => {
@@ -142,50 +143,60 @@ export default function SummaryDashboard() {
     };
   }, [autoRefreshInterval]);
 
-  function fetchData() {
+  async function fetchData(customRange) {
     setLoading(true);
-    fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
-      .then(res => res.json())
-      .then(json => {
-        const mapped = Array.isArray(json.results)
-          ? json.results.map(row => ({
-              time: row.timestamp,
-              temp: row.temperature,
-              bod: row.bod,
-              cod: row.cod,
-              ph: row.ph,
-              tds: row.tds,
-              do: row.do,
-              color: row.color,
-              tss: row.tss
-            }))
-          : [];
-        setData(mapped);
-        if (mapped.length) {
-          const timestamps = mapped
-            .map(row => new Date(row.time).getTime())
-            .filter(Boolean)
-            .sort((a, b) => a - b);
-          if (timestamps.length) {
-            setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
-          }
+    let url = `/api/data?limit=1000&offset=0`;
+    if (customRange && (customRange.from || customRange.to)) {
+      const params = [];
+      if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
+      if (customRange.to) params.push(`timestamp_to=${encodeURIComponent(customRange.to)}`);
+      url += `&${params.join('&')}`;
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const json = await res.json();
+      const mapped = Array.isArray(json.results)
+        ? json.results.map(row => ({
+            time: row.timestamp,
+            temp: row.temperature,
+            bod: row.bod,
+            cod: row.cod,
+            ph: row.ph,
+            tds: row.tds,
+            do: row.do,
+            color: row.color,
+            tss: row.tss
+          }))
+        : [];
+      setData(mapped);
+      if (mapped.length) {
+        const timestamps = mapped
+          .map(row => new Date(row.time).getTime())
+          .filter(Boolean)
+          .sort((a, b) => a - b);
+        if (timestamps.length) {
+          setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
         }
-        setLoading(false);
-      })
-      .catch(() => {
-        setData([]);
-        setLoading(false);
-      });
+      }
+      setLoading(false);
+    } catch {
+      setData([]);
+      setLoading(false);
+    }
   }
+
+  useEffect(() => {
+    if (!filterApplied) fetchData();
+  }, []);
 
   function handleRefresh() {
     fetchData();
-    setDateRange({ from: "", to: "" });
+    setDateRange({ from: '', to: '' });
   }
 
-  function handleDateChange(e) {
-    const { name, value } = e.target;
-    setDateRange((prev) => ({ ...prev, [name]: value }));
+  function handleDateFilterApply() {
+    setFilterApplied(true);
+    fetchData(dateRange);
   }
 
   async function exportPNG() {
@@ -255,8 +266,11 @@ export default function SummaryDashboard() {
             exportLabelCSV="Export as Image"
             exportLabelJSON="Export as PDF"
             dateRange={dateRange}
-            fullRange={fullRange}
-            handleDateChange={handleDateChange}
+            handleDateChange={(e) => {
+              const { name, value } = e.target;
+              setDateRange(prev => ({ ...prev, [name]: value }));
+            }}
+            onDateFilterApply={handleDateFilterApply}
             filterMetric={filterColumn}
             setFilterMetric={setFilterColumn}
             COLUMN_LABELS={COLUMN_LABELS}

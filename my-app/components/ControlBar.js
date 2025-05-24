@@ -11,6 +11,7 @@ const ControlBar = ({
   dateRange,
   fullRange,
   handleDateChange,
+  onDateFilterApply = () => {},
   filterMetric,
   setFilterMetric,
   COLUMN_LABELS,
@@ -21,6 +22,10 @@ const ControlBar = ({
 }) => {
   // Detect if exportCSV or exportJSON are undefined (for dashboards)
   const isImageExport = !exportJSON;
+
+  // Get current time in ISO format for max attribute
+  const nowISO = new Date().toISOString().slice(0, 16);
+
   return (
     <div className="control-bar-sticky">
       <div className="control-bar-main">
@@ -76,30 +81,24 @@ const ControlBar = ({
         <input
           type="datetime-local"
           name="from"
-          value={dateRange.from ? dateRange.from : ''}
-          min={
-            fullRange[0]
-              ? new Date(fullRange[0]).toISOString().slice(0, 16)
-              : ""
-          }
-          max={dateRange.to ? dateRange.to : ''}
+          value={dateRange.from}
           onChange={handleDateChange}
+          max={dateRange.to || nowISO}
           className="control-bar-date-input"
         />
-        <span style={{ color: "#6c63ff", fontWeight: 600 }}>to</span>
         <input
           type="datetime-local"
           name="to"
-          value={dateRange.to ? dateRange.to : ''}
-          min={dateRange.from ? dateRange.from : ''}
-          max={
-            fullRange[1]
-              ? new Date(fullRange[1]).toISOString().slice(0, 16)
-              : ""
-          }
+          value={dateRange.to}
           onChange={handleDateChange}
+          max={nowISO}
           className="control-bar-date-input"
         />
+        <button
+          className="control-bar-header-btn"
+          style={{ marginLeft: 8 }}
+          onClick={onDateFilterApply}
+        >Apply</button>
         {/* Filter Metric Dropdown */}
         <select
           value={filterMetric}
