@@ -22,7 +22,6 @@ export default async function handler(req, res) {
       },
     });
     const data = await apiRes.json();
-    console.info("Sensor data response ----------------:", data);
     res.status(apiRes.status).json(data);
   } catch (err) {
     res.status(500).json({ error: 'Proxy error', detail: err.message });

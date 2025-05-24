@@ -280,7 +280,6 @@ export default function GraphicalDashboard() {
     (m) => !filterMetric || m === filterMetric
   );
   const isSingleMetric = metrics.length === 1;
-  console.log("----------- Limits: ", limits);
 
   // Helper to render a modern card for each metric
   function renderChart(metric, idx) {
@@ -398,8 +397,6 @@ export default function GraphicalDashboard() {
         </div>
       );
     }
-
-    console.log("_________________________", yDomain, metric, limit);
 
     // Default: LineChart
     return (
