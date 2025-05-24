@@ -192,20 +192,36 @@ export default function DataTable() {
       {/* Pagination */}
       <div className="data-table-pagination">
         <button disabled={!prevUrl || page === 1} className={`data-table-pagination-btn${!prevUrl || page === 1 ? ' disabled' : ''}`} onClick={handlePrev}>Previous</button>
-        {[...Array(Math.min(5, Math.ceil(count / PAGE_SIZE))).keys()].map(i => {
-          const p = i + 1;
-          return (
-            <button
-              key={p}
-              className={`data-table-pagination-btn${page === p ? ' active' : ''}`}
-              onClick={() => handlePageChange(p)}
-            >{p}</button>
-          );
-        })}
-        {Math.ceil(count / PAGE_SIZE) > 5 && <span style={{ alignSelf: 'center', fontSize: 18 }}>...</span>}
-        {Math.ceil(count / PAGE_SIZE) > 5 && (
-          <button className="data-table-pagination-btn" onClick={() => handlePageChange(Math.ceil(count / PAGE_SIZE))}>{Math.ceil(count / PAGE_SIZE)}</button>
-        )}
+        {/* Sliding window pagination logic */}
+        {(() => {
+          const totalPages = Math.ceil(count / PAGE_SIZE);
+          let start = Math.max(1, page - 2);
+          let end = Math.min(totalPages, start + 4);
+          if (end - start < 4) start = Math.max(1, end - 4);
+          const pageButtons = [];
+          if (start > 1) {
+            pageButtons.push(
+              <button key={1} className={`data-table-pagination-btn${page === 1 ? ' active' : ''}`} onClick={() => handlePageChange(1)}>1</button>
+            );
+            if (start > 2) pageButtons.push(<span key="start-ellipsis" style={{ alignSelf: 'center', fontSize: 18 }}>...</span>);
+          }
+          for (let p = start; p <= end; ++p) {
+            pageButtons.push(
+              <button
+                key={p}
+                className={`data-table-pagination-btn${page === p ? ' active' : ''}`}
+                onClick={() => handlePageChange(p)}
+              >{p}</button>
+            );
+          }
+          if (end < totalPages) {
+            if (end < totalPages - 1) pageButtons.push(<span key="end-ellipsis" style={{ alignSelf: 'center', fontSize: 18 }}>...</span>);
+            pageButtons.push(
+              <button key={totalPages} className={`data-table-pagination-btn${page === totalPages ? ' active' : ''}`} onClick={() => handlePageChange(totalPages)}>{totalPages}</button>
+            );
+          }
+          return pageButtons;
+        })()}
         <button disabled={!nextUrl || page === Math.ceil(count / PAGE_SIZE)} className={`data-table-pagination-btn${!nextUrl || page === Math.ceil(count / PAGE_SIZE) ? ' disabled' : ''}`} onClick={handleNext}>Next</button>
       </div>
       {/* Note */}
