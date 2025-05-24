@@ -117,9 +117,10 @@ export default function GraphicalDashboard() {
     try {
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
-      setData(Array.isArray(json.results) ? json.results : []);
-      if (mapped.length) {
-        const timestamps = mapped
+      const arr = Array.isArray(json.results) ? json.results : [];
+      setData(arr);
+      if (arr.length) {
+        const timestamps = arr
           .map(row => new Date(row.timestamp).getTime())
           .filter(Boolean)
           .sort((a, b) => a - b);

@@ -18,99 +18,85 @@ const COLORS = [
   "#ffc658",
 ];
 
+const PIE_COLORS = [
+  "#4CAF50", // green for matched (in range)
+  "#F44336", // red for outside range
+  "#222",    // blackish for missing
+];
 
-function getColumnStats(data, key) {
+
+function getColumnStats(data, key, limit) {
   const values = data
-    .map((row) => row[key])
-    .filter((v) => v !== null && v !== undefined && v !== "");
+    .map((row) => {
+      let v = row[key];
+      if (typeof v === 'string' && v.trim() !== '') v = Number(v);
+      return v;
+    })
+    .filter((v) => v !== null && v !== undefined && v !== '' && !isNaN(v));
   if (values.length === 0)
-    return { mean: "-", min: "-", max: "-", outsideSpec: "-", missing: "100%" };
+    return { mean: '-', avg: '-', min: '-', max: '-', outsideSpec: '-', missing: '100%', outOfRangeCount: 0, inRangeCount: 0 };
 
   const mean = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
+  const avg = mean; // For clarity, show avg as same as mean
   const min = Math.min(...values).toFixed(2);
   const max = Math.max(...values).toFixed(2);
 
-  const lower =
-    Math.min(...values) + (Math.max(...values) - Math.min(...values)) * 0.1;
-  const upper =
-    Math.max(...values) - (Math.max(...values) - Math.min(...values)) * 0.1;
-  const outsideSpecCount = values.filter((v) => v < lower || v > upper).length;
-  const outsideSpec =
-    ((outsideSpecCount / values.length) * 100).toFixed(0) + " %";
-
-  const missing =
-    (((data.length - values.length) / data.length) * 100).toFixed(0) + " %";
-
-  return { mean, min, max, outsideSpec, missing };
-}
-
-function quantile(sorted, q) {
-  const pos = (sorted.length - 1) * q;
-  const base = Math.floor(pos);
-  const rest = pos - base;
-  if (sorted[base + 1] !== undefined) {
-    return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+  let outOfRangeCount = 0;
+  let inRangeCount = 0;
+  if (limit && typeof limit.min === 'number' && typeof limit.max === 'number') {
+    values.forEach(v => {
+      if (v < limit.min || v > limit.max) outOfRangeCount++;
+      else inRangeCount++;
+    });
   } else {
-    return sorted[base];
+    inRangeCount = values.length;
   }
+  const outsideSpec = ((outOfRangeCount / values.length) * 100).toFixed(0) + ' %';
+  const missing = (((data.length - values.length) / data.length) * 100).toFixed(0) + ' %';
+
+  return { mean, avg, min, max, outsideSpec, missing, outOfRangeCount, inRangeCount };
 }
 
-function getPieData(data, key) {
-  const values = data
-    .map((row) => row[key])
-    .filter((v) => v !== null && v !== undefined && v !== "")
-    .sort((a, b) => a - b);
-  if (values.length === 0) return [{ name: "No Data", value: 1 }];
-  if (values.length < 4) {
-    return values.map((v, i) => ({ name: `Value ${i + 1}: ${v}`, value: 1 }));
-  }
-  const q1 = quantile(values, 0.25);
-  const q2 = quantile(values, 0.5);
-  const q3 = quantile(values, 0.75);
-  const bins = [0, 0, 0, 0];
-  values.forEach((v) => {
-    if (v <= q1) bins[0]++;
-    else if (v <= q2) bins[1]++;
-    else if (v <= q3) bins[2]++;
-    else bins[3]++;
+function getPieData(data, key, limit) {
+  let inRange = 0, outOfRange = 0, missing = 0;
+  data.forEach(row => {
+    let v = row[key];
+    // For temperature, force numeric conversion and handle string numbers
+    if (typeof v === 'string' && v.trim() !== '') v = Number(v);
+    const isMissing = v === null || v === undefined || v === '' || isNaN(v);
+    if (isMissing) {
+      missing++;
+    } else if (
+      limit && typeof limit.min === 'number' && typeof limit.max === 'number' &&
+      (v < limit.min || v > limit.max)
+    ) {
+      outOfRange++;
+    } else {
+      inRange++;
+    }
   });
-  // Defensive: ensure q1/q2/q3 are numbers
-  const q1Label = typeof q1 === 'number' && isFinite(q1) ? q1.toFixed(2) : 'N/A';
-  const q2Label = typeof q2 === 'number' && isFinite(q2) ? q2.toFixed(2) : 'N/A';
-  const q3Label = typeof q3 === 'number' && isFinite(q3) ? q3.toFixed(2) : 'N/A';
   return [
-    { name: `≤ Q1 (${q1Label})`, value: bins[0] },
-    { name: `Q1-Q2 (${q1Label}-${q2Label})`, value: bins[1] },
-    { name: `Q2-Q3 (${q2Label}-${q3Label})`, value: bins[2] },
-    { name: `> Q3 (${q3Label})`, value: bins[3] },
+    { name: 'Matched (In Range', value: inRange },
+    { name: 'Outside Range', value: outOfRange },
+    { name: 'Missing', value: missing },
   ];
 }
 
 function CustomTooltip({ active, payload, stats, col }) {
   if (active && payload && payload.length && payload[0] && payload[0].payload) {
+    // Calculate total for percentage
+    const total = stats.inRangeCount + stats.outOfRangeCount + (stats.missing !== '-' ? Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount + (stats.missing !== '-' ? Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount)) : 0))) : 0);
+    const missingCount = (typeof stats.missing === 'string' && stats.missing.endsWith('%'))
+      ? Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount + Math.round((parseFloat(stats.missing) / 100) * (stats.inRangeCount + stats.outOfRangeCount))))
+      : (stats.missing || 0);
+    const totalCount = stats.inRangeCount + stats.outOfRangeCount + missingCount;
+    const percent = (count) => totalCount > 0 ? ((count / totalCount) * 100).toFixed(1) + '%' : '0%';
     return (
       <div className="custom-tooltip">
-        <div className="tooltip-title">
-          {col.toUpperCase()}
-        </div>
-        <div className="tooltip-item">
-          <b>{payload[0].name}</b>: {payload[0].value}
-        </div>
-        <div className="tooltip-item">
-          Mean: <b>{stats.mean}</b>
-        </div>
-        <div className="tooltip-item">
-          Min: <b>{stats.min}</b>
-        </div>
-        <div className="tooltip-item">
-          Max: <b>{stats.max}</b>
-        </div>
-        <div className="tooltip-item">
-          Outside Spec: <b>{stats.outsideSpec}</b>
-        </div>
-        <div className="tooltip-item">
-          Missing Data: <b>{stats.missing}</b>
-        </div>
+        <div className="tooltip-title">{col.toUpperCase()}</div>
+        <div className="tooltip-item"><span style={{color:PIE_COLORS[0]}}><b>In Range:</b></span> {stats.inRangeCount} ({percent(stats.inRangeCount)})</div>
+        <div className="tooltip-item"><span style={{color:PIE_COLORS[1]}}><b>Out of Spec:</b></span> {stats.outOfRangeCount} ({percent(stats.outOfRangeCount)})</div>
+        <div className="tooltip-item"><span style={{color:PIE_COLORS[2]}}><b>Missing:</b></span> {missingCount} ({percent(missingCount)})</div>
       </div>
     );
   }
@@ -312,9 +298,9 @@ export default function SummaryDashboard() {
           />
           <div className="summary-grid">
             {columns.map((col, idx) => {
-              const stats = getColumnStats(filteredData, col);
-              const pieData = getPieData(filteredData, col);
+              const stats = getColumnStats(filteredData, col, limits[col]);
               const limit = limits[col];
+              const pieData = getPieData(filteredData, col, limit);
               return (
                 <div key={col} className="summary-card">
                   <div className="summary-card-title">{col.toUpperCase()}</div>
@@ -336,21 +322,34 @@ export default function SummaryDashboard() {
                           {pieData.map((entry, i) => (
                             <Cell
                               key={`cell-${i}`}
-                              fill={COLORS[i % COLORS.length]}
+                              fill={PIE_COLORS[i]}
                               style={{ cursor: "pointer", transition: "filter 0.2s" }}
                             />
                           ))}
                         </Pie>
+
                         <Tooltip content={(props) => <CustomTooltip {...props} stats={stats} col={col} />} />
+                        
+                        {/* Mark out-of-range area visually on the pie chart legend */}
+                        <g className="pie-legend" transform="translate(0,200)" style={{ marginTop: 45 }}>
+                          <rect x="0" y="0" width="18" height="18" fill={PIE_COLORS[0]} />
+                          <text x="24" y="14" fontSize="14">Matched</text>
+                          <rect x="90" y="0" width="18" height="18" fill={PIE_COLORS[1]} />
+                          <text x="114" y="14" fontSize="14">Outside Range</text>
+                          <rect x="220" y="0" width="18" height="18" fill={PIE_COLORS[2]} />
+                          <text x="245" y="14" fontSize="14">Missing</text>
+                        </g>
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="summary-stats">
+                    {/* <div><b>Matched (In Range):</b> {stats.inRangeCount}</div>
+                    <div><b>Outside Range:</b> {stats.outOfRangeCount}</div>
+                    <div><b>Missing:</b> {pieData[2].value}</div> */}
                     <div><b>Mean:</b> {stats.mean}</div>
+                    <div><b>Avg:</b> {stats.avg}</div>
                     <div><b>Min:</b> {stats.min}</div>
                     <div><b>Max:</b> {stats.max}</div>
-                    <div><b>Outside Spec:</b> {stats.outsideSpec}</div>
-                    <div><b>Missing Data:</b> {stats.missing}</div>
                     {limit && (
                       <>
                         <div><b>Limit Min:</b> {limit.min}</div>
