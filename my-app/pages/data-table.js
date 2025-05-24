@@ -119,7 +119,11 @@ export default function DataTable() {
     filterMetric: '',
     setFilterMetric: () => {},
     COLUMN_LABELS: {},
-    handleRefresh: () => setPage(1),
+    handleRefresh: () => {
+      setFilterApplied(false); // Reset filter so fetchData will run
+      setPage(1); // Optionally reset to first page
+      fetchData(); // Explicitly fetch data
+    },
     loading,
     autoRefreshInterval,
     onAutoRefreshChange: setAutoRefreshInterval,
