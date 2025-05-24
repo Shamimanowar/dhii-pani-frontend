@@ -128,6 +128,28 @@ export default function SummaryDashboard() {
 
   useEffect(() => {
     setMounted(true);
+    // Try to load from sessionStorage first
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('sensorDataCache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setData(parsed);
+            const timestamps = parsed
+              .map(row => new Date(row.time).getTime())
+              .filter(Boolean)
+              .sort((a, b) => a - b);
+            if (timestamps.length) {
+              setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+            }
+            setLoading(false);
+            return;
+          }
+        } catch {}
+      }
+    }
+    // If no cache, fetch from API
     fetchData();
     // eslint-disable-next-line
   }, []);
@@ -170,6 +192,9 @@ export default function SummaryDashboard() {
           }))
         : [];
       setData(mapped);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sensorDataCache', JSON.stringify(mapped));
+      }
       if (mapped.length) {
         const timestamps = mapped
           .map(row => new Date(row.time).getTime())
@@ -200,6 +225,9 @@ export default function SummaryDashboard() {
 
   function handleRefresh() {
     fetchData();
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('sensorDataCache');
+    }
     setDateRange({ from: '', to: '' });
   }
 

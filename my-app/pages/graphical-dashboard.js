@@ -148,6 +148,28 @@ export default function GraphicalDashboard() {
 
   // Fetch data from /api/data.js (same as data-table.js)
   useEffect(() => {
+    // Try to load from sessionStorage first
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('sensorDataCache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setData(parsed);
+            const timestamps = parsed
+              .map(row => new Date(row.time).getTime())
+              .filter(Boolean)
+              .sort((a, b) => a - b);
+            if (timestamps.length) {
+              setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
+            }
+            setLoading(false);
+            return;
+          }
+        } catch {}
+      }
+    }
+    // If no cache, fetch from API
     setLoading(true);
     fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
       .then(res => res.json())
@@ -166,7 +188,6 @@ export default function GraphicalDashboard() {
             }))
           : [];
         setData(mapped);
-        // Set full date range
         if (mapped.length) {
           const timestamps = mapped
             .map(row => new Date(row.time).getTime())
@@ -227,7 +248,9 @@ export default function GraphicalDashboard() {
             }))
           : [];
         setData(mapped);
-        // Set full date range
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('sensorDataCache', JSON.stringify(mapped));
+        }
         if (mapped.length) {
           const timestamps = mapped
             .map(row => new Date(row.time).getTime())

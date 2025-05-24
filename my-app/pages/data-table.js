@@ -42,21 +42,24 @@ export default function DataTable() {
       setCount(json.count || 0);
       setNextUrl(json.next);
       setPrevUrl(json.previous);
-      setData(
-        Array.isArray(json.results)
-          ? json.results.map(row => ({
-              time: row.timestamp,
-              temp: row.temperature,
-              bod: row.bod,
-              cod: row.cod,
-              ph: row.ph,
-              tds: row.tds,
-              do: row.do,
-              color: row.color,
-              tss: row.tss
-            }))
-          : []
-      );
+      const mapped = Array.isArray(json.results)
+        ? json.results.map(row => ({
+            time: row.timestamp,
+            temp: row.temperature,
+            bod: row.bod,
+            cod: row.cod,
+            ph: row.ph,
+            tds: row.tds,
+            do: row.do,
+            color: row.color,
+            tss: row.tss
+          }))
+        : [];
+      setData(mapped);
+      // Store in sessionStorage for dashboard reuse
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sensorDataCache', JSON.stringify(mapped));
+      }
     } catch (err) {
       setData([]);
       setCount(0);
