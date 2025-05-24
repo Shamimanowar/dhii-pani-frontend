@@ -1,8 +1,15 @@
 import React from 'react';
-import { isOutOfRange } from '../utils/columnLimits';
 import '../css/data-table-body.css';
 
-export default function DataTableBody({ data, refreshing, tdStyle }) {
+export default function DataTableBody({ data, refreshing, limits = {} }) {
+  
+  const isOutOfRange = (metric, value) => {
+      const lim = limits[metric];
+      if (!lim || value === undefined || value === null || value === "") return false;
+      if (lim.min !== undefined && value < lim.min) return true;
+      if (lim.max !== undefined && value > lim.max) return true;
+      return false;
+    }
   return (
     <tbody>
       {data.map((row, i) => (

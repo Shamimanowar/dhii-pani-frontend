@@ -45,16 +45,16 @@ const COLUMN_LABELS = {
   tss: "TSS",
 };
 
-const LIMITS = {
-  temp: { upper: 32.04, lower: 31.93 },
-  tds: { upper: 2500, lower: 0 },
-  bod: { upper: 10, lower: 0 },
-  cod: { upper: 50, lower: 0 },
-  ph: { upper: 8, lower: 6 },
-  do: { upper: 10, lower: 4 },
-  chroma: { upper: 20, lower: 0 },
-  tss: { upper: 50, lower: 0 },
-};
+// const LIMITS = {
+//   temp: { upper: 32.04, lower: 31.93 },
+//   tds: { upper: 2500, lower: 0 },
+//   bod: { upper: 10, lower: 0 },
+//   cod: { upper: 50, lower: 0 },
+//   ph: { upper: 8, lower: 6 },
+//   do: { upper: 10, lower: 4 },
+//   chroma: { upper: 20, lower: 0 },
+//   tss: { upper: 50, lower: 0 },
+// };
 
 // Helper for formatting time for Brush
 function brushTickFormatter(str) {
@@ -95,6 +95,7 @@ export default function GraphicalDashboard() {
   const [exportOpen, setExportOpen] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
   const autoRefreshTimer = useRef(null);
+  const [limits, setLimits] = useState({});
 
   // Date range state - start blank
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
@@ -183,6 +184,14 @@ export default function GraphicalDashboard() {
       });
   }, []);
 
+  // Fetch limits from backend
+  useEffect(() => {
+    fetch("/api/sensor-data-range", { credentials: 'include' })
+      .then(res => res.json())
+      .then(setLimits)
+      .catch(() => setLimits({}));
+  }, []);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -268,13 +277,20 @@ export default function GraphicalDashboard() {
     (m) => !filterMetric || m === filterMetric
   );
   const isSingleMetric = metrics.length === 1;
+  console.log("----------- Limits: ", limits);
 
   // Helper to render a modern card for each metric
   function renderChart(metric, idx) {
     if (!data.length) return null;
     const color = COLORS[idx % COLORS.length];
     const label = COLUMN_LABELS[metric] || metric.toUpperCase();
-    const limits = LIMITS[metric];
+    const limit = limits[metric];
+
+    // Helper for YAxis domain
+    // const yDomain = limit && limit.min !== undefined && limit.max !== undefined
+    //   ? [Math.min(limit.min, limit.max), Math.max(limit.min, limit.max)]
+    //   : ["auto", "auto"];
+    const yDomain = ["auto", "auto"];
 
     if (metric === "tds") {
       return (
@@ -299,20 +315,20 @@ export default function GraphicalDashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
-              <YAxis domain={["auto", "auto"]} />
+              <YAxis domain={yDomain} />
               <Tooltip />
               <Legend />
-              {limits && (
+              {limit && (
                 <ReferenceLine
-                  y={limits.upper}
+                  y={limit.max}
                   label="Upper"
                   stroke="#222"
                   strokeDasharray="3 3"
                 />
               )}
-              {limits && (
+              {limit && (
                 <ReferenceLine
-                  y={limits.lower}
+                  y={limit.min}
                   label="Lower"
                   stroke="#222"
                   strokeDasharray="3 3"
@@ -348,20 +364,20 @@ export default function GraphicalDashboard() {
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
-              <YAxis domain={["auto", "auto"]} />
+              <YAxis domain={yDomain} />
               <Tooltip />
               <Legend />
-              {limits && (
+              {limit && (
                 <ReferenceLine
-                  y={limits.upper}
+                  y={limit.max}
                   label="Upper"
                   stroke="#222"
                   strokeDasharray="3 3"
                 />
               )}
-              {limits && (
+              {limit && (
                 <ReferenceLine
-                  y={limits.lower}
+                  y={limit.min}
                   label="Lower"
                   stroke="#222"
                   strokeDasharray="3 3"
@@ -379,6 +395,9 @@ export default function GraphicalDashboard() {
         </div>
       );
     }
+
+    console.log("_________________________", yDomain, metric, limit);
+
     // Default: LineChart
     return (
       <div key={metric} className="card">
@@ -390,20 +409,20 @@ export default function GraphicalDashboard() {
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
-            <YAxis domain={["auto", "auto"]} />
+            <YAxis domain={yDomain} />
             <Tooltip />
             <Legend />
-            {limits && (
+            {limit && (
               <ReferenceLine
-                y={limits.upper}
+                y={limit.max}
                 label="Upper"
                 stroke="#222"
                 strokeDasharray="3 3"
               />
             )}
-            {limits && (
+            {limit && (
               <ReferenceLine
-                y={limits.lower}
+                y={limit.min}
                 label="Lower"
                 stroke="#222"
                 strokeDasharray="3 3"

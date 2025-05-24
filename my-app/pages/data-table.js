@@ -23,6 +23,7 @@ export default function DataTable() {
   const [loading, setLoading] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
   const [filterApplied, setFilterApplied] = useState(false);
+  const [limits, setLimits] = useState({});
   const autoRefreshTimer = useRef(null);
 
   // Fetch data from /api/data.js
@@ -142,6 +143,14 @@ export default function DataTable() {
     };
   }, [autoRefreshInterval]);
 
+  // Fetch limits from backend
+  useEffect(() => {
+    fetch("/api/sensor-data-range", { credentials: 'include' })
+      .then(res => res.json())
+      .then(setLimits)
+      .catch(() => setLimits({}));
+  }, []);
+
   const pagedData = data;
 
   return (
@@ -169,7 +178,7 @@ export default function DataTable() {
                 <th className="data-table-th">TSS</th>
               </tr>
             </thead>
-            <DataTableBody data={pagedData} refreshing={loading} tdStyle={tdStyle} />
+            <DataTableBody data={pagedData} refreshing={loading} limits={limits} />
           </table>
         </div>
       </div>
@@ -213,11 +222,4 @@ export const getServerSideProps = async ({ req }) => {
     };
   }
   return { props: {} };
-};
-
-const tdStyle = {
-  padding: '11px 18px',
-  borderBottom: '1px solid #f0f0f0',
-  textAlign: 'left',
-  fontSize: 15
 };

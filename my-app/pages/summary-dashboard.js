@@ -123,6 +123,7 @@ export default function SummaryDashboard() {
   const [loading, setLoading] = useState(true);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
   const [filterApplied, setFilterApplied] = useState(false);
+  const [limits, setLimits] = useState({});
   const autoRefreshTimer = useRef(null);
 
   useEffect(() => {
@@ -184,6 +185,14 @@ export default function SummaryDashboard() {
       setLoading(false);
     }
   }
+
+  // Fetch limits from backend
+  useEffect(() => {
+    fetch("/api/sensor-data-range", { credentials: 'include' })
+      .then(res => res.json())
+      .then(setLimits)
+      .catch(() => setLimits({}));
+  }, []);
 
   useEffect(() => {
     if (!filterApplied) fetchData();
@@ -283,6 +292,7 @@ export default function SummaryDashboard() {
             {columns.map((col, idx) => {
               const stats = getColumnStats(filteredData, col);
               const pieData = getPieData(filteredData, col);
+              const limit = limits[col];
               return (
                 <div key={col} className="summary-card">
                   <div className="summary-card-title">{col.toUpperCase()}</div>
@@ -319,6 +329,12 @@ export default function SummaryDashboard() {
                     <div><b>Max:</b> {stats.max}</div>
                     <div><b>Outside Spec:</b> {stats.outsideSpec}</div>
                     <div><b>Missing Data:</b> {stats.missing}</div>
+                    {limit && (
+                      <>
+                        <div><b>Limit Min:</b> {limit.min}</div>
+                        <div><b>Limit Max:</b> {limit.max}</div>
+                      </>
+                    )}
                   </div>
                 </div>
               );
