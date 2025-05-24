@@ -28,6 +28,9 @@ const PIE_COLORS = [
   "#222",    // blackish for missing
 ];
 
+// Helper to get the API endpoint from environment variable (for client-side fetches to Next.js API routes)
+const API_DATA_ROUTE = "/api/data";
+const API_LIMITS_ROUTE = "/api/sensor-data-range";
 
 // getColumnStats: Computes summary statistics (mean, avg, min, max, out-of-spec %, missing %) for a given column.
 // - Only numeric, non-missing values are included in calculations.
@@ -171,7 +174,7 @@ export default function SummaryDashboard() {
 
   async function fetchData(customRange) {
     setLoading(true);
-    let url = `/api/data?limit=1000&offset=0`;
+    let url = `${API_DATA_ROUTE}?limit=1000&offset=0`;
     if (customRange && (customRange.from || customRange.to)) {
       const params = [];
       if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
@@ -179,6 +182,7 @@ export default function SummaryDashboard() {
       url += `&${params.join('&')}`;
     }
     try {
+      // Fetch data from Next.js API route, which proxies to backend using env var
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
       const arr = Array.isArray(json.results) ? json.results : [];
@@ -204,7 +208,7 @@ export default function SummaryDashboard() {
 
   // Fetch limits from backend
   useEffect(() => {
-    fetch("/api/sensor-data-range", { credentials: 'include' })
+    fetch(API_LIMITS_ROUTE, { credentials: 'include' })
       .then(res => res.json())
       .then(setLimits)
       .catch(() => setLimits({}));
@@ -249,6 +253,7 @@ export default function SummaryDashboard() {
   }
 
   // Filter data by date range and selected column (metric)
+  // FIX: Always filter only by date, not by column value presence, so missing data is included in pie chart
   const filteredData = data.filter((row) => {
     if (!row.timestamp) return false;
     const t = new Date(row.timestamp).getTime();
@@ -261,12 +266,8 @@ export default function SummaryDashboard() {
     if ((dateRange.from && !dateRange.to) || (!dateRange.from && dateRange.to)) {
       inDateRange = false;
     }
-    const columnOk = filterColumn
-      ? row[filterColumn] !== undefined &&
-        row[filterColumn] !== null &&
-        row[filterColumn] !== ""
-      : true;
-    return inDateRange && columnOk;
+    // Do NOT filter by column value here, so missing data is included in pie chart
+    return inDateRange;
   });
 
   const COLUMN_LABELS = Object.keys(data[0] || {})

@@ -93,6 +93,10 @@ function timeTickFormatter(str) {
   return str;
 }
 
+// Helper to get the API endpoint from environment variable (for client-side fetches to Next.js API routes)
+const API_DATA_ROUTE = "/api/data";
+const API_LIMITS_ROUTE = "/api/sensor-data-range";
+
 export default function GraphicalDashboard() {
   // State variables:
   // - mounted: tracks if component is mounted (for SSR/CSR issues)
@@ -120,7 +124,7 @@ export default function GraphicalDashboard() {
   // Fetches all sensor data from the backend API, optionally filtered by date range.
   async function fetchData(customRange) {
     setLoading(true);
-    let url = `/api/data?limit=1000&offset=0`;
+    let url = `${API_DATA_ROUTE}?limit=1000&offset=0`;
     if (customRange && (customRange.from || customRange.to)) {
       const params = [];
       if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
@@ -128,10 +132,9 @@ export default function GraphicalDashboard() {
       url += `&${params.join('&')}`;
     }
     try {
-      // Fetch data from backend API
+      // Fetch data from Next.js API route, which proxies to backend using env var
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
-      // Use 'results' array from API response
       setData(Array.isArray(json.results) ? json.results : []);
       // Optionally, store in sessionStorage for reuse
       if (typeof window !== 'undefined') {
@@ -169,7 +172,7 @@ export default function GraphicalDashboard() {
     }
     // If no cache, fetch from API
     setLoading(true);
-    fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
+    fetch(API_DATA_ROUTE + "?limit=1000&offset=0", { credentials: 'include' })
       .then(res => res.json())
       .then(json => {
         const arr = Array.isArray(json.results) ? json.results : [];
@@ -196,7 +199,7 @@ export default function GraphicalDashboard() {
 
   // Fetch limits from backend
   useEffect(() => {
-    fetch("/api/sensor-data-range", { credentials: 'include' })
+    fetch(API_LIMITS_ROUTE, { credentials: 'include' })
       .then(res => res.json())
       .then(setLimits)
       .catch(() => setLimits({}));
@@ -220,7 +223,7 @@ export default function GraphicalDashboard() {
 
   function handleRefresh() {
     setLoading(true);
-    fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
+    fetch(API_DATA_ROUTE + "?limit=1000&offset=0", { credentials: 'include' })
       .then(res => res.json())
       .then(json => {
         const arr = Array.isArray(json.results) ? json.results : [];

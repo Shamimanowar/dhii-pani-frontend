@@ -10,6 +10,10 @@ import '../css/data-table.css';
 
 const PAGE_SIZE = 20;
 
+// Helper to get the API endpoint from environment variable (for client-side fetches to Next.js API routes)
+const API_DATA_ROUTE = "/api/data";
+const API_LIMITS_ROUTE = "/api/sensor-data-range";
+
 // Main DataTable page for displaying tabular sensor data from the backend API only.
 // All data fetching, filtering, and export logic is handled here.
 // No Google Sheets or mock data is used—API is the single source of truth.
@@ -34,7 +38,7 @@ export default function DataTable() {
   // Stores results in state and sessionStorage for reuse by other dashboards.
   async function fetchData(customRange) {
     setLoading(true);
-    let url = `/api/data?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
+    let url = `${API_DATA_ROUTE}?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
     // If a date range is provided, add it to the API query params.
     if (customRange && (customRange.from || customRange.to)) {
       const params = [];
@@ -43,7 +47,7 @@ export default function DataTable() {
       url += `&${params.join('&')}`;
     }
     try {
-      // Fetch data from backend API. Credentials included for auth.
+      // Fetch data from Next.js API route, which proxies to backend using env var
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
       setCount(json.count || 0);
@@ -147,7 +151,7 @@ export default function DataTable() {
 
   // Fetch limits from backend
   useEffect(() => {
-    fetch("/api/sensor-data-range", { credentials: 'include' })
+    fetch(API_LIMITS_ROUTE, { credentials: 'include' })
       .then(res => res.json())
       .then(setLimits)
       .catch(() => setLimits({}));
