@@ -22,6 +22,10 @@ import '../css/graphical-dashboard.css';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+// Main GraphicalDashboard page for visualizing sensor data from the backend API only.
+// All charts and graphs are rendered using API data—no Google Sheets or mock data remains.
+// Extensive comments provided to clarify logic and design for future maintainers.
+
 const COLORS = [
   "#e75480",
   "#764ba2",
@@ -90,6 +94,14 @@ function timeTickFormatter(str) {
 }
 
 export default function GraphicalDashboard() {
+  // State variables:
+  // - mounted: tracks if component is mounted (for SSR/CSR issues)
+  // - data: stores fetched sensor data
+  // - loading: indicates if data is being loaded
+  // - exportOpen: controls export modal visibility
+  // - autoRefreshInterval: interval (seconds) for auto-refresh
+  // - autoRefreshTimer: ref for managing auto-refresh timer
+  // - limits: stores API-provided or default value limits for chart reference lines
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,6 +117,7 @@ export default function GraphicalDashboard() {
   const [filterMetric, setFilterMetric] = useState("");
   const [filterApplied, setFilterApplied] = useState(false);
 
+  // Fetches all sensor data from the backend API, optionally filtered by date range.
   async function fetchData(customRange) {
     setLoading(true);
     let url = `/api/data?limit=1000&offset=0`;
@@ -115,22 +128,18 @@ export default function GraphicalDashboard() {
       url += `&${params.join('&')}`;
     }
     try {
+      // Fetch data from backend API
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
-      const arr = Array.isArray(json.results) ? json.results : [];
-      setData(arr);
-      if (arr.length) {
-        const timestamps = arr
-          .map(row => new Date(row.timestamp).getTime())
-          .filter(Boolean)
-          .sort((a, b) => a - b);
-        if (timestamps.length) {
-          setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
-        }
+      // Use 'results' array from API response
+      setData(Array.isArray(json.results) ? json.results : []);
+      // Optionally, store in sessionStorage for reuse
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sensorDataCache', JSON.stringify(Array.isArray(json.results) ? json.results : []));
       }
-      setLoading(false);
-    } catch {
+    } catch (err) {
       setData([]);
+    } finally {
       setLoading(false);
     }
   }

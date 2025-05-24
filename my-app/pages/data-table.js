@@ -10,6 +10,10 @@ import '../css/data-table.css';
 
 const PAGE_SIZE = 20;
 
+// Main DataTable page for displaying tabular sensor data from the backend API only.
+// All data fetching, filtering, and export logic is handled here.
+// No Google Sheets or mock data is used—API is the single source of truth.
+
 export default function DataTable() {
   const router = useRouter();
   const [page, setPage] = useState(1);
@@ -26,10 +30,12 @@ export default function DataTable() {
   const [limits, setLimits] = useState({});
   const autoRefreshTimer = useRef(null);
 
-  // Fetch data from /api/data.js
+  // Fetches paginated data from the backend API, applying date filters if provided.
+  // Stores results in state and sessionStorage for reuse by other dashboards.
   async function fetchData(customRange) {
     setLoading(true);
     let url = `/api/data?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
+    // If a date range is provided, add it to the API query params.
     if (customRange && (customRange.from || customRange.to)) {
       const params = [];
       if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
@@ -37,17 +43,19 @@ export default function DataTable() {
       url += `&${params.join('&')}`;
     }
     try {
+      // Fetch data from backend API. Credentials included for auth.
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
       setCount(json.count || 0);
       setNextUrl(json.next);
       setPrevUrl(json.previous);
       setData(Array.isArray(json.results) ? json.results : []);
-      // Store in sessionStorage for dashboard reuse
+      // Store in sessionStorage for dashboard reuse (e.g., summary/graphical dashboards)
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('sensorDataCache', JSON.stringify(Array.isArray(json.results) ? json.results : []));
       }
     } catch (err) {
+      // On error, clear data and show empty state
       setData([]);
       setCount(0);
       setNextUrl(null);
@@ -61,7 +69,7 @@ export default function DataTable() {
     if (!filterApplied) fetchData();
   }, [page]);
 
-  // Set full date range
+  // Calculate the full date range available in the current data set
   useEffect(() => {
     if (Array.isArray(data) && data.length > 0) {
       const timestamps = data
@@ -74,6 +82,7 @@ export default function DataTable() {
     }
   }, [data]);
 
+  // Applies the selected date filter and fetches filtered data
   function handleDateFilterApply() {
     setFilterApplied(true);
     setPage(1);
@@ -84,7 +93,9 @@ export default function DataTable() {
   const controlBarProps = {
     exportOpen,
     setExportOpen,
+    // Exports current data as CSV using utility
     exportCSV: () => exportCSV(data),
+    // Exports current data as JSON
     exportJSON: () => {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
       const downloadAnchorNode = document.createElement('a');
@@ -95,6 +106,7 @@ export default function DataTable() {
       downloadAnchorNode.remove();
     },
     dateRange,
+    // Handles changes to the date filter inputs
     handleDateChange: (e) => {
       const { name, value } = e.target;
       setDateRange(prev => ({ ...prev, [name]: value }));

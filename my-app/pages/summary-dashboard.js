@@ -7,6 +7,10 @@ import '../css/summary-dashboard.css';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+// Main SummaryDashboard page for showing summary stats and pie charts from backend API data only.
+// All calculations and visualizations are based on API data—no Google Sheets or mock data remains.
+// Comments provided to clarify logic and design for future maintainers.
+
 const COLORS = [
   "#345995",
   "#6DECB9",
@@ -25,6 +29,10 @@ const PIE_COLORS = [
 ];
 
 
+// getColumnStats: Computes summary statistics (mean, avg, min, max, out-of-spec %, missing %) for a given column.
+// - Only numeric, non-missing values are included in calculations.
+// - 'avg' is shown as an alias for 'mean' for clarity.
+// - Out-of-spec and missing percentages are calculated relative to total data count.
 function getColumnStats(data, key, limit) {
   const values = data
     .map((row) => {
@@ -57,6 +65,9 @@ function getColumnStats(data, key, limit) {
   return { mean, avg, min, max, outsideSpec, missing, outOfRangeCount, inRangeCount };
 }
 
+// getPieData: Prepares data for the pie chart legend and chart.
+// - Counts in-range, out-of-range, and missing values for a given column.
+// - Used to render color-coded pie chart and legend.
 function getPieData(data, key, limit) {
   let inRange = 0, outOfRange = 0, missing = 0;
   data.forEach(row => {
@@ -82,6 +93,8 @@ function getPieData(data, key, limit) {
   ];
 }
 
+// CustomTooltip: Renders a detailed tooltip for the pie chart, showing counts and percentages for each category.
+// - Ensures tooltip content is clear and color-coded to match the legend.
 function CustomTooltip({ active, payload, stats, col }) {
   if (active && payload && payload.length && payload[0] && payload[0].payload) {
     // Calculate total for percentage
@@ -209,6 +222,7 @@ export default function SummaryDashboard() {
     setDateRange({ from: '', to: '' });
   }
 
+  // Handle date filter application to fetch data within the specified range
   function handleDateFilterApply() {
     setFilterApplied(true);
     fetchData(dateRange);
