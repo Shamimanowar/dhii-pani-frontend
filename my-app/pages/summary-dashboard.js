@@ -1,5 +1,5 @@
 import PageHeader from "../components/PageHeader";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import ControlBar from "../components/ControlBar";
 import cookie from "cookie";
@@ -121,12 +121,26 @@ export default function SummaryDashboard() {
   const [filterColumn, setFilterColumn] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
+  const autoRefreshTimer = useRef(null);
 
   useEffect(() => {
     setMounted(true);
     fetchData();
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+    if (autoRefreshInterval > 0) {
+      autoRefreshTimer.current = setInterval(() => {
+        handleRefresh();
+      }, autoRefreshInterval * 1000);
+    }
+    return () => {
+      if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+    };
+  }, [autoRefreshInterval]);
 
   function fetchData() {
     setLoading(true);
@@ -248,6 +262,8 @@ export default function SummaryDashboard() {
             COLUMN_LABELS={COLUMN_LABELS}
             handleRefresh={handleRefresh}
             loading={loading}
+            autoRefreshInterval={autoRefreshInterval}
+            onAutoRefreshChange={setAutoRefreshInterval}
           />
           <div className="summary-grid">
             {columns.map((col, idx) => {

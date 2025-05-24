@@ -15,7 +15,9 @@ const ControlBar = ({
   setFilterMetric,
   COLUMN_LABELS,
   handleRefresh,
-  loading
+  loading,
+  autoRefreshInterval = 0,
+  onAutoRefreshChange = () => {},
 }) => {
   // Detect if exportCSV or exportJSON are undefined (for dashboards)
   const isImageExport = !exportJSON;
@@ -110,6 +112,19 @@ const ControlBar = ({
               {label}
             </option>
           ))}
+        </select>
+        {/* Auto Refresh Dropdown */}
+        <select
+          className="control-bar-select"
+          style={{ marginLeft: 12, minWidth: 120 }}
+          value={autoRefreshInterval}
+          onChange={e => onAutoRefreshChange(Number(e.target.value))}
+        >
+          <option value={0}>Auto Refresh: Off</option>
+          <option value={180}>Every 3 min</option>
+          <option value={600}>Every 10 min</option>
+          <option value={1800}>Every 30 min</option>
+          <option value={3600}>Every 1 hour</option>
         </select>
         {/* Refresh */}
         <button

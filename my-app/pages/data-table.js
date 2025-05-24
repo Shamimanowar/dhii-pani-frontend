@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import PageHeader from '../components/PageHeader';
 import { isOutOfRange } from '../utils/columnLimits';
@@ -23,6 +23,8 @@ export default function DataTable() {
   const [nextUrl, setNextUrl] = useState(null);
   const [prevUrl, setPrevUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
+  const autoRefreshTimer = useRef(null);
 
   // Fetch data from /api/data.js
   useEffect(() => {
@@ -132,7 +134,9 @@ export default function DataTable() {
     setFilterMetric: () => {},
     COLUMN_LABELS: {},
     handleRefresh: () => setPage(1),
-    loading
+    loading,
+    autoRefreshInterval,
+    onAutoRefreshChange: setAutoRefreshInterval,
   };
 
   function handlePageChange(newPage) {
@@ -146,6 +150,18 @@ export default function DataTable() {
   function handlePrev() {
     if (prevUrl) setPage(page - 1);
   }
+
+  useEffect(() => {
+    if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+    if (autoRefreshInterval > 0) {
+      autoRefreshTimer.current = setInterval(() => {
+        setPage(1);
+      }, autoRefreshInterval * 1000);
+    }
+    return () => {
+      if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+    };
+  }, [autoRefreshInterval]);
 
   return (
     <div className="data-table-bg">

@@ -1,5 +1,5 @@
 import PageHeader from "../components/PageHeader";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -93,6 +93,8 @@ export default function GraphicalDashboard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exportOpen, setExportOpen] = useState(false);
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
+  const autoRefreshTimer = useRef(null);
 
   // Date range state - start blank
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
@@ -141,6 +143,18 @@ export default function GraphicalDashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+    if (autoRefreshInterval > 0) {
+      autoRefreshTimer.current = setInterval(() => {
+        handleRefresh();
+      }, autoRefreshInterval * 1000);
+    }
+    return () => {
+      if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+    };
+  }, [autoRefreshInterval]);
 
   function handleRefresh() {
     setLoading(true);
@@ -423,6 +437,8 @@ export default function GraphicalDashboard() {
         COLUMN_LABELS={COLUMN_LABELS}
         handleRefresh={handleRefresh}
         loading={loading}
+        autoRefreshInterval={autoRefreshInterval}
+        onAutoRefreshChange={setAutoRefreshInterval}
       />
       {/* Main caller */}
       {mounted && (
