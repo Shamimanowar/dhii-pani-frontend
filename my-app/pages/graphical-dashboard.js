@@ -35,7 +35,7 @@ const COLORS = [
 ];
 
 const COLUMN_LABELS = {
-  temp: "Temperature (°C)",
+  temperature: "Temperature (°C)",
   bod: "BOD",
   cod: "COD",
   ph: "pH",
@@ -59,6 +59,7 @@ const COLUMN_LABELS = {
 // Helper for formatting time for Brush
 function brushTickFormatter(str) {
   if (!str) return "";
+  if (typeof str !== 'string') str = String(str);
   const parts = str.split(" ");
   if (parts.length === 2) {
     const [date, time] = parts;
@@ -116,23 +117,10 @@ export default function GraphicalDashboard() {
     try {
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
-      const mapped = Array.isArray(json.results)
-        ? json.results.map(row => ({
-            time: row.timestamp,
-            temp: row.temperature,
-            bod: row.bod,
-            cod: row.cod,
-            ph: row.ph,
-            tds: row.tds,
-            do: row.do,
-            color: row.color,
-            tss: row.tss
-          }))
-        : [];
-      setData(mapped);
+      setData(Array.isArray(json.results) ? json.results : []);
       if (mapped.length) {
         const timestamps = mapped
-          .map(row => new Date(row.time).getTime())
+          .map(row => new Date(row.timestamp).getTime())
           .filter(Boolean)
           .sort((a, b) => a - b);
         if (timestamps.length) {
@@ -157,7 +145,7 @@ export default function GraphicalDashboard() {
           if (Array.isArray(parsed) && parsed.length > 0) {
             setData(parsed);
             const timestamps = parsed
-              .map(row => new Date(row.time).getTime())
+              .map(row => new Date(row.timestamp).getTime())
               .filter(Boolean)
               .sort((a, b) => a - b);
             if (timestamps.length) {
@@ -174,23 +162,14 @@ export default function GraphicalDashboard() {
     fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
       .then(res => res.json())
       .then(json => {
-        const mapped = Array.isArray(json.results)
-          ? json.results.map(row => ({
-              time: row.timestamp,
-              temp: row.temperature,
-              bod: row.bod,
-              cod: row.cod,
-              ph: row.ph,
-              tds: row.tds,
-              do: row.do,
-              color: row.color,
-              tss: row.tss
-            }))
-          : [];
-        setData(mapped);
-        if (mapped.length) {
-          const timestamps = mapped
-            .map(row => new Date(row.time).getTime())
+        const arr = Array.isArray(json.results) ? json.results : [];
+        setData(arr);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('sensorDataCache', JSON.stringify(arr));
+        }
+        if (arr.length) {
+          const timestamps = arr
+            .map(row => new Date(row.timestamp).getTime())
             .filter(Boolean)
             .sort((a, b) => a - b);
           if (timestamps.length) {
@@ -221,7 +200,7 @@ export default function GraphicalDashboard() {
     if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
     if (autoRefreshInterval > 0) {
       autoRefreshTimer.current = setInterval(() => {
-        handleRefresh();
+        fetchData();
       }, autoRefreshInterval * 1000);
     }
     return () => {
@@ -234,26 +213,14 @@ export default function GraphicalDashboard() {
     fetch("/api/data?limit=1000&offset=0", { credentials: 'include' })
       .then(res => res.json())
       .then(json => {
-        const mapped = Array.isArray(json.results)
-          ? json.results.map(row => ({
-              time: row.timestamp,
-              temp: row.temperature,
-              bod: row.bod,
-              cod: row.cod,
-              ph: row.ph,
-              tds: row.tds,
-              do: row.do,
-              color: row.color,
-              tss: row.tss
-            }))
-          : [];
-        setData(mapped);
+        const arr = Array.isArray(json.results) ? json.results : [];
+        setData(arr);
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('sensorDataCache', JSON.stringify(mapped));
+          sessionStorage.setItem('sensorDataCache', JSON.stringify(arr));
         }
-        if (mapped.length) {
-          const timestamps = mapped
-            .map(row => new Date(row.time).getTime())
+        if (arr.length) {
+          const timestamps = arr
+            .map(row => new Date(row.timestamp).getTime())
             .filter(Boolean)
             .sort((a, b) => a - b);
           if (timestamps.length) {

@@ -20,7 +20,7 @@ export default function useGoogleSheetData(sheetUrl) {
               ])
             );
           })
-          .filter(row => row.time);
+          .filter(row => row.timestamp);
         setData(parsed);
       })
       .catch(() => setData([]));

@@ -74,11 +74,15 @@ function getPieData(data, key) {
     else if (v <= q3) bins[2]++;
     else bins[3]++;
   });
+  // Defensive: ensure q1/q2/q3 are numbers
+  const q1Label = typeof q1 === 'number' && isFinite(q1) ? q1.toFixed(2) : 'N/A';
+  const q2Label = typeof q2 === 'number' && isFinite(q2) ? q2.toFixed(2) : 'N/A';
+  const q3Label = typeof q3 === 'number' && isFinite(q3) ? q3.toFixed(2) : 'N/A';
   return [
-    { name: `≤ Q1 (${q1.toFixed(2)})`, value: bins[0] },
-    { name: `Q1-Q2 (${q1.toFixed(2)}-${q2.toFixed(2)})`, value: bins[1] },
-    { name: `Q2-Q3 (${q2.toFixed(2)}-${q3.toFixed(2)})`, value: bins[2] },
-    { name: `> Q3 (${q3.toFixed(2)})`, value: bins[3] },
+    { name: `≤ Q1 (${q1Label})`, value: bins[0] },
+    { name: `Q1-Q2 (${q1Label}-${q2Label})`, value: bins[1] },
+    { name: `Q2-Q3 (${q2Label}-${q3Label})`, value: bins[2] },
+    { name: `> Q3 (${q3Label})`, value: bins[3] },
   ];
 }
 
@@ -137,7 +141,7 @@ export default function SummaryDashboard() {
           if (Array.isArray(parsed) && parsed.length > 0) {
             setData(parsed);
             const timestamps = parsed
-              .map(row => new Date(row.time).getTime())
+              .map(row => new Date(row.timestamp).getTime())
               .filter(Boolean)
               .sort((a, b) => a - b);
             if (timestamps.length) {
@@ -158,7 +162,7 @@ export default function SummaryDashboard() {
     if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
     if (autoRefreshInterval > 0) {
       autoRefreshTimer.current = setInterval(() => {
-        handleRefresh();
+        fetchData();
       }, autoRefreshInterval * 1000);
     }
     return () => {
@@ -178,26 +182,14 @@ export default function SummaryDashboard() {
     try {
       const res = await fetch(url, { credentials: 'include' });
       const json = await res.json();
-      const mapped = Array.isArray(json.results)
-        ? json.results.map(row => ({
-            time: row.timestamp,
-            temp: row.temperature,
-            bod: row.bod,
-            cod: row.cod,
-            ph: row.ph,
-            tds: row.tds,
-            do: row.do,
-            color: row.color,
-            tss: row.tss
-          }))
-        : [];
-      setData(mapped);
+      const arr = Array.isArray(json.results) ? json.results : [];
+      setData(arr);
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('sensorDataCache', JSON.stringify(mapped));
+        sessionStorage.setItem('sensorDataCache', JSON.stringify(arr));
       }
-      if (mapped.length) {
-        const timestamps = mapped
-          .map(row => new Date(row.time).getTime())
+      if (arr.length) {
+        const timestamps = arr
+          .map(row => new Date(row.timestamp).getTime())
           .filter(Boolean)
           .sort((a, b) => a - b);
         if (timestamps.length) {
@@ -258,8 +250,8 @@ export default function SummaryDashboard() {
 
   // Filter data by date range and selected column (metric)
   const filteredData = data.filter((row) => {
-    if (!row.time) return false;
-    const t = new Date(row.time).getTime();
+    if (!row.timestamp) return false;
+    const t = new Date(row.timestamp).getTime();
     let inDateRange = true;
     if (dateRange.from && dateRange.to) {
       const from = new Date(dateRange.from).getTime();
@@ -277,13 +269,15 @@ export default function SummaryDashboard() {
     return inDateRange && columnOk;
   });
 
-  const COLUMN_LABELS = Object.keys(data[0] || {}).filter(k => k !== "time").reduce((acc, k) => {
-    acc[k] = k.toUpperCase();
-    return acc;
-  }, {});
+  const COLUMN_LABELS = Object.keys(data[0] || {})
+    .filter(k => k !== "timestamp" && k !== "factory" && k !== "id" && k !== "topic_id")
+    .reduce((acc, k) => {
+      acc[k] = k.toUpperCase();
+      return acc;
+    }, {});
 
-  const columns = Object.keys(data[0] || {}).filter(
-    (key) => key !== "time" && (!filterColumn || key === filterColumn)
+  const columns = Object.keys(data[0] || {})
+    .filter(key => key !== "timestamp" && key !== "factory" && key !== "id" && key !== "topic_id" && (!filterColumn || key === filterColumn)
   );
 
   return (

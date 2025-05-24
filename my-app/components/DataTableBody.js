@@ -19,8 +19,8 @@ export default function DataTableBody({ data, refreshing, limits = {} }) {
           onMouseEnter={e => e.currentTarget.classList.add('hover')}
           onMouseLeave={e => e.currentTarget.classList.remove('hover')}
         >
-          <td className="data-table-td">{row.time}</td>
-          <td className={`data-table-td${isOutOfRange('temp', row.temp) ? ' out-of-range' : ''}`}>{row.temp}</td>
+          <td className="data-table-td">{row.timestamp}</td>
+          <td className={`data-table-td${isOutOfRange('temp', row.temperature) ? ' out-of-range' : ''}`}>{row.temperature}</td>
           <td className={`data-table-td${isOutOfRange('bod', row.bod) ? ' out-of-range' : ''}`}>{row.bod}</td>
           <td className={`data-table-td${isOutOfRange('cod', row.cod) ? ' out-of-range' : ''}`}>{row.cod}</td>
           <td className={`data-table-td${isOutOfRange('ph', row.ph) ? ' out-of-range' : ''}`}>{row.ph}</td>

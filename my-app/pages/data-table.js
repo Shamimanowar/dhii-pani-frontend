@@ -42,23 +42,10 @@ export default function DataTable() {
       setCount(json.count || 0);
       setNextUrl(json.next);
       setPrevUrl(json.previous);
-      const mapped = Array.isArray(json.results)
-        ? json.results.map(row => ({
-            time: row.timestamp,
-            temp: row.temperature,
-            bod: row.bod,
-            cod: row.cod,
-            ph: row.ph,
-            tds: row.tds,
-            do: row.do,
-            color: row.color,
-            tss: row.tss
-          }))
-        : [];
-      setData(mapped);
+      setData(Array.isArray(json.results) ? json.results : []);
       // Store in sessionStorage for dashboard reuse
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('sensorDataCache', JSON.stringify(mapped));
+        sessionStorage.setItem('sensorDataCache', JSON.stringify(Array.isArray(json.results) ? json.results : []));
       }
     } catch (err) {
       setData([]);
@@ -78,7 +65,7 @@ export default function DataTable() {
   useEffect(() => {
     if (Array.isArray(data) && data.length > 0) {
       const timestamps = data
-        .map(row => new Date(row.time).getTime())
+        .map(row => new Date(row.timestamp).getTime())
         .filter(Boolean)
         .sort((a, b) => a - b);
       if (timestamps.length) {
