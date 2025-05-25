@@ -343,7 +343,6 @@ export default function SummaryDashboard() {
                         </Pie>
 
                         <Tooltip content={(props) => <CustomTooltip {...props} stats={stats} col={col} />} />
-                        
                         {/* Mark out-of-range area visually on the pie chart legend */}
                         <g className="pie-legend" transform="translate(0,200)" style={{ marginTop: 45 }}>
                           <rect x="0" y="0" width="18" height="18" fill={PIE_COLORS[0]} />
@@ -355,6 +354,25 @@ export default function SummaryDashboard() {
                         </g>
                       </PieChart>
                     </ResponsiveContainer>
+                  </div>
+                  {/* Add always-visible summary of pie chart stats for export */}
+                  <div className="summary-pie-stats" style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 16,
+                    margin: '8px 0 0 0',
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}>
+                    <span style={{ color: PIE_COLORS[0] }}>
+                      In Range: {stats.inRangeCount} ({filteredData.length > 0 ? ((stats.inRangeCount / filteredData.length) * 100).toFixed(1) : '0'}%)
+                    </span>
+                    <span style={{ color: PIE_COLORS[1] }}>
+                      Out of Spec: {stats.outOfRangeCount} ({filteredData.length > 0 ? ((stats.outOfRangeCount / filteredData.length) * 100).toFixed(1) : '0'}%)
+                    </span>
+                    <span style={{ color: PIE_COLORS[2] }}>
+                      Missing: {pieData[2].value} ({filteredData.length > 0 ? ((pieData[2].value / filteredData.length) * 100).toFixed(1) : '0'}%)
+                    </span>
                   </div>
                   <div className="summary-stats">
                     {/* <div><b>Matched (In Range):</b> {stats.inRangeCount}</div>
