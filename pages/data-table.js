@@ -146,7 +146,7 @@ export default function DataTable() {
     if (autoRefreshInterval > 0) {
       autoRefreshTimer.current = setInterval(() => {
         setPage(1);
-      }, autoRefreshInterval * 1000);
+      }, autoRefreshInterval * 20);
     }
     return () => {
       if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);

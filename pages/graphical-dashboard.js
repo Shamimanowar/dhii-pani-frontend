@@ -124,7 +124,7 @@ export default function GraphicalDashboard() {
   // Fetches all sensor data from the backend API, optionally filtered by date range.
   async function fetchData(customRange) {
     setLoading(true);
-    let url = `${API_DATA_ROUTE}?limit=1000&offset=0`;
+    let url = `${API_DATA_ROUTE}?limit=100&offset=0`;
     if (customRange && (customRange.from || customRange.to)) {
       const params = [];
       if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
@@ -172,7 +172,7 @@ export default function GraphicalDashboard() {
     }
     // If no cache, fetch from API
     setLoading(true);
-    fetch(API_DATA_ROUTE + "?limit=1000&offset=0", { credentials: 'include' })
+    fetch(API_DATA_ROUTE + "?limit=100&offset=0", { credentials: 'include' })
       .then(res => res.json())
       .then(json => {
         const arr = Array.isArray(json.results) ? json.results : [];
@@ -223,7 +223,7 @@ export default function GraphicalDashboard() {
 
   function handleRefresh() {
     setLoading(true);
-    fetch(API_DATA_ROUTE + "?limit=1000&offset=0", { credentials: 'include' })
+    fetch(API_DATA_ROUTE + "?limit=100&offset=0", { credentials: 'include' })
       .then(res => res.json())
       .then(json => {
         const arr = Array.isArray(json.results) ? json.results : [];

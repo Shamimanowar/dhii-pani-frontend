@@ -173,7 +173,7 @@ export default function SummaryDashboard() {
 
   async function fetchData(customRange) {
     setLoading(true);
-    let url = `${API_DATA_ROUTE}?limit=1000&offset=0`;
+    let url = `${API_DATA_ROUTE}?limit=100&offset=0`;
     if (customRange && (customRange.from || customRange.to)) {
       const params = [];
       if (customRange.from) params.push(`timestamp_from=${encodeURIComponent(customRange.from)}`);
