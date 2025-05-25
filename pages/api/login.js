@@ -25,15 +25,24 @@ export default async function handler(req, res) {
       // Assuming the response contains an access token
       const accessToken = data.access;
 
-      // Set token in HttpOnly cookie
-      res.setHeader("Set-Cookie", cookie.serialize("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env?.NODE_ENV !== "development",
-        maxAge: 60 * 60 * 24 * 5, // 5 day
-        sameSite: "strict",
-        path: "/",
-      }));
-
+      // Set token and factory in HttpOnly cookies (must be set as an array to avoid overwriting)
+      res.setHeader("Set-Cookie", [
+        cookie.serialize("accessToken", accessToken, {
+          httpOnly: true,
+          secure: process.env?.NODE_ENV !== "development",
+          maxAge: 60 * 60 * 24 * 5, // 5 day
+          sameSite: "strict",
+          path: "/",
+        }),
+        cookie.serialize("factory", data.factory, {
+          httpOnly: false,
+          secure: process.env?.NODE_ENV !== "development",
+          maxAge: 60 * 60 * 24 * 5, // 5 day
+          sameSite: "strict",
+          path: "/",
+        })
+      ]);
+      
       res.status(200).json({ message: "Login successful" });
     } catch (error) {
       res.status(401).json({ error: "Authentication failed" });
@@ -41,12 +50,20 @@ export default async function handler(req, res) {
   }
     else if (req.method === "DELETE") {
     // Logout: Clear cookies
-    res.setHeader("Set-Cookie", cookie.serialize("accessToken", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== "development",
-      maxAge: 0, // Expire immediately
-      path: "/",
-    }));
+    res.setHeader("Set-Cookie", [
+      cookie.serialize("accessToken", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== "development",
+        maxAge: 0, // Expire immediately
+        path: "/",
+      }),
+      cookie.serialize("factory", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== "development",
+        maxAge: 0, // Expire immediately
+        path: "/",
+      })
+    ]);
     res.status(200).json({ message: "Logged out successfully" });
 
     }

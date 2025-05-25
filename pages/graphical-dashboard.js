@@ -488,6 +488,25 @@ export default function GraphicalDashboard() {
             : "No data to display. Please select a date range."}
         </div>
       )}
+
+            {/* Show total number of data points used for pie charts */}
+      <div style={{
+        marginTop: 32,
+        textAlign: 'center',
+        fontSize: 18,
+        color: '#345995',
+        fontWeight: 600,
+        letterSpacing: 0.5,
+        background: '#f7fafd',
+        borderRadius: 12,
+        padding: '12px 0',
+        boxShadow: '0 2px 8px 0 #e6e6e6',
+        maxWidth: 340,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}>
+        Total data points: <span style={{ color: '#222', fontWeight: 700 }}>{data.length}</span>
+      </div>
     </div>
   );
 }
