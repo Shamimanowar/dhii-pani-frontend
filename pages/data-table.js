@@ -178,14 +178,14 @@ export default function DataTable() {
             <thead className="data-table-thead">
               <tr>
                 <th className="data-table-th">TIME</th>
-                <th className="data-table-th">TEMP</th>
-                <th className="data-table-th">BOD</th>
-                <th className="data-table-th">COD</th>
-                <th className="data-table-th">PH</th>
-                <th className="data-table-th">TDS</th>
-                <th className="data-table-th">DO</th>
-                <th className="data-table-th">COLOR</th>
-                <th className="data-table-th">TSS</th>
+                <th className="data-table-th">TEMP{limits.temperature && (limits.temperature.max !== undefined ? ` (${limits.temperature.max})` : limits.temperature.min !== undefined ? ` (${limits.temperature.min})` : '')}</th>
+                <th className="data-table-th">BOD{limits.bod && (limits.bod.max !== undefined ? ` (${limits.bod.max})` : limits.bod.min !== undefined ? ` (${limits.bod.min})` : '')}</th>
+                <th className="data-table-th">COD{limits.cod && (limits.cod.max !== undefined ? ` (${limits.cod.max})` : limits.cod.min !== undefined ? ` (${limits.cod.min})` : '')}</th>
+                <th className="data-table-th">PH{limits.ph && (limits.ph.max !== undefined ? ` (${limits.ph.max})` : limits.ph.min !== undefined ? ` (${limits.ph.min})` : '')}</th>
+                <th className="data-table-th">TDS{limits.tds && (limits.tds.max !== undefined ? ` (${limits.tds.max})` : limits.tds.min !== undefined ? ` (${limits.tds.min})` : '')}</th>
+                <th className="data-table-th">DO{limits.do && (limits.do.max !== undefined ? ` (${limits.do.max})` : limits.do.min !== undefined ? ` (${limits.do.min})` : '')}</th>
+                <th className="data-table-th">COLOR{limits.color && (limits.color.max !== undefined ? ` (${limits.color.max})` : limits.color.min !== undefined ? ` (${limits.color.min})` : '')}</th>
+                <th className="data-table-th">TSS{limits.tss && (limits.tss.max !== undefined ? ` (${limits.tss.max})` : limits.tss.min !== undefined ? ` (${limits.tss.min})` : '')}</th>
               </tr>
             </thead>
             <DataTableBody data={pagedData} refreshing={loading} limits={limits} />
