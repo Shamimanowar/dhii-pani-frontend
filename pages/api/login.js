@@ -3,7 +3,7 @@ import cookie from "cookie";
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
-      const { phone, password, is_staff } = req.body;
+      const { phone, password } = req.body;
       const response = await fetch("http://127.0.0.1:8080/v1/core/auth/jwt/create/", {
         method: "POST",
         headers: {
@@ -12,7 +12,6 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           phone,
           password,
-          is_staff,
         }),
       });
 

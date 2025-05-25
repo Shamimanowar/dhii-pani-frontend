@@ -26,7 +26,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone: phoneInput, password, is_staff: true }),
+        body: JSON.stringify({ phone: phoneInput, password }),
       });
 
       const data = await response.json();
