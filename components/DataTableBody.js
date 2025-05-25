@@ -10,6 +10,20 @@ export default function DataTableBody({ data, refreshing, limits = {} }) {
       if (lim.max !== undefined && value > lim.max) return true;
       return false;
     }
+
+    function formatDateTime(dt) {
+      if (!dt) return '';
+      const date = new Date(dt);
+      if (isNaN(date.getTime())) return dt;
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).replace(',', ',').replace('AM', 'a.m.').replace('PM', 'p.m.');
+    }
   return (
     <tbody>
       {data.map((row, i) => (
@@ -19,7 +33,7 @@ export default function DataTableBody({ data, refreshing, limits = {} }) {
           onMouseEnter={e => e.currentTarget.classList.add('hover')}
           onMouseLeave={e => e.currentTarget.classList.remove('hover')}
         >
-          <td className="data-table-td">{row.timestamp}</td>
+          <td className="data-table-td">{formatDateTime(row.timestamp)}</td>
           <td className={`data-table-td${isOutOfRange('temp', row.temperature) ? ' out-of-range' : ''}`}>{row.temperature}</td>
           <td className={`data-table-td${isOutOfRange('bod', row.bod) ? ' out-of-range' : ''}`}>{row.bod}</td>
           <td className={`data-table-td${isOutOfRange('cod', row.cod) ? ' out-of-range' : ''}`}>{row.cod}</td>
