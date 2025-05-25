@@ -49,16 +49,6 @@ const COLUMN_LABELS = {
   tss: "TSS",
 };
 
-// const LIMITS = {
-//   temp: { upper: 32.04, lower: 31.93 },
-//   tds: { upper: 2500, lower: 0 },
-//   bod: { upper: 10, lower: 0 },
-//   cod: { upper: 50, lower: 0 },
-//   ph: { upper: 8, lower: 6 },
-//   do: { upper: 10, lower: 4 },
-//   chroma: { upper: 20, lower: 0 },
-//   tss: { upper: 50, lower: 0 },
-// };
 
 // Helper for formatting time for Brush
 function brushTickFormatter(str) {
@@ -73,24 +63,18 @@ function brushTickFormatter(str) {
 }
 
 // Helper for formatting time for Brush and XAxis
-function timeTickFormatter(str) {
+function timeTickFormatter(str, index) {
   if (!str) return "";
-  // Try to format ISO or YYYY-MM-DDTHH:mm:ssZ to 'MM-DD HH:mm'
   const d = new Date(str);
-  if (!isNaN(d.getTime())) {
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${mm}-${dd} ${hh}:${min}`;
+  if (isNaN(d.getTime())) return str;
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  if (index === 0) {
+    return `${mm}.${dd} ${hours}:${minutes}`;
   }
-  // fallback: try to split if space exists
-  const parts = str.split(" ");
-  if (parts.length === 2) {
-    const [date, time] = parts;
-    return `${date.slice(5)} ${time.slice(0, 5)}`;
-  }
-  return str;
+  return `${hours}:${minutes}`;
 }
 
 // Helper to get the API endpoint from environment variable (for client-side fetches to Next.js API routes)
@@ -316,7 +300,7 @@ export default function GraphicalDashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
+              <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
               <YAxis domain={yDomain} />
               <Tooltip />
               <Legend />
@@ -345,7 +329,7 @@ export default function GraphicalDashboard() {
                 dot={false}
               />
               <Brush
-                dataKey="time"
+                dataKey="timestamp"
                 height={20}
                 stroke={color}
                 tickFormatter={brushTickFormatter}
@@ -365,7 +349,7 @@ export default function GraphicalDashboard() {
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
+              <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
               <YAxis domain={yDomain} />
               <Tooltip />
               <Legend />
@@ -387,7 +371,7 @@ export default function GraphicalDashboard() {
               )}
               <Bar dataKey={metric} fill={color} />
               <Brush
-                dataKey="time"
+                dataKey="timestamp"
                 height={20}
                 stroke={color}
                 tickFormatter={brushTickFormatter}
@@ -408,7 +392,7 @@ export default function GraphicalDashboard() {
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
+            <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
             <YAxis domain={yDomain} />
             <Tooltip />
             <Legend />
@@ -437,7 +421,7 @@ export default function GraphicalDashboard() {
               fill="none"
             />
             <Brush
-              dataKey="time"
+              dataKey="timestamp"
               height={20}
               stroke={color}
               tickFormatter={brushTickFormatter}
