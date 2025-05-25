@@ -236,7 +236,13 @@ export default function SummaryDashboard() {
     if (!main) return;
     const canvas = await html2canvas(main, { backgroundColor: null });
     const link = document.createElement('a');
-    link.download = 'summary-dashboard.png';
+    
+    const date = new Date();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const formattedDate = `${date.toISOString().slice(0, 10).replace(/-/g, '_')}.${hours}.${minutes}`;
+
+    link.download = `summary-dashboard-${formattedDate}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
@@ -248,7 +254,13 @@ export default function SummaryDashboard() {
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save('summary-dashboard.pdf');
+    
+    const date = new Date();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const formattedDate = `${date.toISOString().slice(0, 10).replace(/-/g, '_')}.${hours}.${minutes}`;
+
+    pdf.save(`summary-dashboard-${formattedDate}.pdf`);
   }
 
   // Filter data by date range and selected column (metric)
