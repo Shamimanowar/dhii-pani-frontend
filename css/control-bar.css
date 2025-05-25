@@ -79,3 +79,11 @@
   min-width: 140px;
   transition: border 0.2s;
 }
+
+/* Move inline styles to classes for ControlBar.js */
+.control-bar-relative { position: relative; }
+.control-bar-label { font-weight: 600; color: #6c63ff; font-size: 15px; }
+.control-bar-ml-8 { margin-left: 8px; }
+.control-bar-ml-12 { margin-left: 12px; min-width: 120px; }
+.control-bar-btn-130-36 { width: 130px; height: 36px; }
+.control-bar-fs-18 { font-size: 18px; }

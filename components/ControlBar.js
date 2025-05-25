@@ -30,7 +30,7 @@ const ControlBar = ({
     <div className="control-bar-sticky">
       <div className="control-bar-main">
         {/* Export Dropdown */}
-        <div style={{ position: "relative" }}>
+        <div className="control-bar-relative">
           <button
             className="control-bar-header-btn"
             onClick={() => setExportOpen((v) => !v)}
@@ -75,7 +75,7 @@ const ControlBar = ({
           )}
         </div>
         {/* Date Range */}
-        <label style={{ fontWeight: 600, color: "#6c63ff", fontSize: 15 }}>
+        <label className="control-bar-label">
           Date:
         </label>
         <input
@@ -95,8 +95,7 @@ const ControlBar = ({
           className="control-bar-date-input"
         />
         <button
-          className="control-bar-header-btn"
-          style={{ marginLeft: 8 }}
+          className="control-bar-header-btn control-bar-ml-8"
           onClick={onDateFilterApply}
         >Apply</button>
         {/* Filter Metric Dropdown */}
@@ -114,8 +113,7 @@ const ControlBar = ({
         </select>
         {/* Auto Refresh Dropdown */}
         <select
-          className="control-bar-select"
-          style={{ marginLeft: 12, minWidth: 120 }}
+          className="control-bar-select control-bar-ml-12"
           value={autoRefreshInterval}
           onChange={e => onAutoRefreshChange(Number(e.target.value))}
         >
@@ -127,15 +125,14 @@ const ControlBar = ({
         </select>
         {/* Refresh */}
         <button
-          className="control-bar-header-btn"
-          style={{ width: 130, height: 36 }}
+          className="control-bar-header-btn control-bar-btn-130-36"
           onClick={handleRefresh}
         >
           {loading ? (
             <span className="dt-refresh-anim">⟳</span>
           ) : (
             <>
-              Refresh <span style={{ fontSize: 22 }}>▼</span>
+              Refresh <span className="control-bar-fs-18">▼</span>
             </>
           )}
         </button>

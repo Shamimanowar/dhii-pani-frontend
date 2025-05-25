@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import '../css/app-page.css';
 
 export default function Home() {
   return (
@@ -87,8 +88,7 @@ export default function Home() {
             alt="ETP Monitoring Portal Logo"
             width={120}
             height={120}
-            className="mb-6 rounded-full shadow-lg object-cover border-4 border-[#e3e9f7] bg-[#e3e9f7]"
-            style={{ background: '#e3e9f7' }}
+            className="mb-6 rounded-full shadow-lg object-cover border-4 border-[#e3e9f7] bg-[#e3e9f7] dhi-logo-bg"
             priority
           />
           <h2 className="text-2xl font-bold text-[#345995] mb-4 text-center">
