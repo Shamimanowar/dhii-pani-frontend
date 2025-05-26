@@ -20,7 +20,7 @@ export default function Home() {
               industries, especially in the textile sector, to minimize water
               pollution and comply with national and international standards.
               Proper ETP operation not only safeguards our rivers and communities
-              but also enhances the global competitiveness of Bangladesh's
+              but also enhances the global competitiveness of Bangladesh&apos;s
               textile industry.
             </p>
             <p className="text-base text-[#345995] font-semibold mb-2">

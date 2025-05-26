@@ -2,7 +2,7 @@ import PageHeader from "../components/PageHeader";
 import { useEffect, useState, useRef } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import ControlBar from "../components/ControlBar";
-import cookie from "cookie";
+import * as cookie from "cookie";
 import '../css/summary-dashboard.css';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -439,7 +439,6 @@ export default function SummaryDashboard() {
 export const getServerSideProps = async ({ req }) => {
   const cookies = cookie.parse(req.headers.cookie || "");
   const accessToken = cookies.accessToken || null;
-  console.info("Access Token from cookie: ", accessToken);
   if (!accessToken) {
     return {
       redirect: { destination: "/login", permanent: false },

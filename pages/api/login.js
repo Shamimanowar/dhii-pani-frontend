@@ -1,10 +1,12 @@
-import cookie from "cookie";
+import * as cookie from "cookie";
+
+let url = "http://app:8000/v1/core/auth/jwt/create/"
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
       const { phone, password } = req.body;
-      const response = await fetch("http://127.0.0.1:8080/v1/core/auth/jwt/create/", {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -15,12 +17,13 @@ export default async function handler(req, res) {
         }),
       });
 
+      
+
       const data = await response.json();
+      console.log("-- response ", response)
       if (!response.ok) {
         throw new Error(data.detail || "Login failed");
       }
-
-      
       // Assuming the response contains an access token
       const accessToken = data.access;
 
@@ -41,10 +44,12 @@ export default async function handler(req, res) {
           path: "/",
         })
       ]);
+      console.log("ENVIRONMENT", process.env?.NODE_ENV)
+
       
       res.status(200).json({ message: "Login successful" });
     } catch (error) {
-      res.status(401).json({ error: "Authentication failed" });
+      res.status(401).json({ error: `Authentication failed -- ${error}`});
     }
   }
     else if (req.method === "DELETE") {

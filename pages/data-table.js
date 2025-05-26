@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import PageHeader from '../components/PageHeader';
 import { exportCSV, exportExcel } from '../utils/exportUtils';
 import DataTableBody from '../components/DataTableBody';
-import cookie from 'cookie';
-import { GetServerSideProps } from 'next';
+import * as cookie from "cookie";
 import ControlBar from '../components/ControlBar';
 import '../css/data-table.css';
 
@@ -36,7 +35,7 @@ export default function DataTable() {
 
   // Fetches paginated data from the backend API, applying date filters if provided.
   // Stores results in state and sessionStorage for reuse by other dashboards.
-  async function fetchData(customRange) {
+  const fetchData = useCallback(async (customRange = null) => {
     setLoading(true);
     let url = `${API_DATA_ROUTE}?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`;
     // If a date range is provided, add it to the API query params.
@@ -67,11 +66,11 @@ export default function DataTable() {
     } finally {
       setLoading(false);
     }
-  }
+  })
 
   useEffect(() => {
     if (!filterApplied) fetchData();
-  }, [page]);
+  }, [page, filterApplied]);
 
   // Calculate the full date range available in the current data set
   useEffect(() => {

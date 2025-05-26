@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  nextjs:
+    build: .
+    container_name: dhii-pani-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./.env
+    restart: always
+    # volumes:
+    #   - ./:/app
+    networks:
+      - dhi-pani_shared_network  # Connect to the common network
+
+networks:
+  dhi-pani_shared_network:
+    external: true  # Ensure it uses the common network from backend

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/router';
-import cookie from 'cookie';
 import '../css/login.css';
 
 export default function Login() {
@@ -40,7 +39,7 @@ export default function Login() {
       
     } else {
       setError('Invalid Phone or password');
-      setTimeout(() => setError(''), 2000);
+      setTimeout(() => setError(''), 9000);
     }
   }
 

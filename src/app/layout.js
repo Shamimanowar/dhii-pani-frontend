@@ -12,13 +12,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"), // Ensure correct base URL
   title: "DHII - ETP Monitoring Dashboard",
   keywords: [
     "ETP",
     "Monitoring",
     "Dashboard",
     "Software Engineer",
-    "SHAMIM ANOWAAR",
+    "SHAMIM ANOWAR",
     "Best Programmer",
     "Web Development",
     "Shamim",
@@ -33,24 +34,6 @@ export const metadata = {
       url: "https://shm-port.netlify.app/",
     },
   ],
-  creator: "Shamim Anowar",
-  openGraph: {
-    title: "DHII - ETP Monitoring Dashboard",
-    description:
-      "ETP Monitoring Dashboard for Textile Industries in Bangladesh",
-    url: "https://invenshape.com/",
-    siteName: "DHII ETP Monitoring",
-    images: [
-      {
-        url: "/dhi_logo.jpg",
-        width: 1200,
-        height: 630,
-        alt: "ETP Monitoring Dashboard",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
 };
 
 export default function RootLayout({ children }) {

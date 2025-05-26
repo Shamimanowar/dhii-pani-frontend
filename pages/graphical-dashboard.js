@@ -17,7 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import ControlBar from "../components/ControlBar";
-import cookie from "cookie";
+import * as cookie from "cookie";
 import '../css/graphical-dashboard.css';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";

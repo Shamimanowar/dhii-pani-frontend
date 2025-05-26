@@ -1,7 +1,7 @@
-import cookie from 'cookie';
+import * as cookie from "cookie";
 
 // Use environment variable for backend API endpoint
-const API_ENDPOINT = process.env.API_ENDPOINT || 'http://127.0.0.1:8080/v1/core';
+const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || 'http://app:8000/v1/core';
 
 export default async function handler(req, res) {
   // Get accessToken from cookies (server-side, httpOnly is fine)
