@@ -143,8 +143,7 @@ export default function GraphicalDashboard() {
             setData(parsed);
             const timestamps = parsed
               .map(row => new Date(row.timestamp).getTime())
-              .filter(Boolean)
-              .sort((a, b) => a - b);
+              .filter(Boolean);
             if (timestamps.length) {
               setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
             }
@@ -167,8 +166,7 @@ export default function GraphicalDashboard() {
         if (arr.length) {
           const timestamps = arr
             .map(row => new Date(row.timestamp).getTime())
-            .filter(Boolean)
-            .sort((a, b) => a - b);
+            .filter(Boolean);
           if (timestamps.length) {
             setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
           }
@@ -218,8 +216,7 @@ export default function GraphicalDashboard() {
         if (arr.length) {
           const timestamps = arr
             .map(row => new Date(row.timestamp).getTime())
-            .filter(Boolean)
-            .sort((a, b) => a - b);
+            .filter(Boolean);
           if (timestamps.length) {
             setFullRange([timestamps[0], timestamps[timestamps.length - 1]]);
           }
@@ -277,9 +274,12 @@ export default function GraphicalDashboard() {
   );
   const isSingleMetric = metrics.length === 1;
 
+  // Reverse data so most recent is on the right
+  const displayData = Array.isArray(data) ? [...data].reverse() : [];
+
   // Helper to render a modern card for each metric
   function renderChart(metric, idx) {
-    if (!data.length) return null;
+    if (!displayData.length) return null;
     const color = COLORS[idx % COLORS.length];
     const label = COLUMN_LABELS[metric] || metric.toUpperCase();
     const limit = limits[metric];
@@ -296,7 +296,7 @@ export default function GraphicalDashboard() {
           <div className="card-title">{label}</div>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart
-              data={data}
+              data={displayData}
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
@@ -357,7 +357,7 @@ export default function GraphicalDashboard() {
           <div className="card-title">{label}</div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
-              data={data}
+              data={displayData}
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -400,7 +400,7 @@ export default function GraphicalDashboard() {
         <div className="card-title">{label}</div>
         <ResponsiveContainer width="100%" height={260}>
           <LineChart
-            data={data}
+            data={displayData}
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
