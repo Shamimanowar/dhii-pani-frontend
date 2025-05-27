@@ -150,7 +150,7 @@ export default function GraphicalDashboard() {
             setLoading(false);
             return;
           }
-        } catch {}
+        } catch { }
       }
     }
     // If no cache, fetch from API
@@ -259,12 +259,12 @@ export default function GraphicalDashboard() {
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    
+
     const date = new Date();
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const formattedDate = `${date.toISOString().slice(0, 10).replace(/-/g, '_')}.${hours}.${minutes}`;
-    
+
     pdf.save(`graphical-dashboard-${formattedDate}.pdf`);
   }
 
@@ -351,7 +351,6 @@ export default function GraphicalDashboard() {
         </div>
       );
     }
-
 
     // Default: LineChart
     return (
@@ -444,7 +443,7 @@ export default function GraphicalDashboard() {
         </div>
       )}
 
-            {/* Show total number of data points used for pie charts */}
+      {/* Show total number of data points used for pie charts */}
       <div style={{
         marginTop: 32,
         textAlign: 'center',

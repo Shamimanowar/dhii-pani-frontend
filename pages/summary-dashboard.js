@@ -44,11 +44,13 @@ function getColumnStats(data, key, limit) {
       return v;
     })
     .filter((v) => v !== null && v !== undefined && v !== '' && !isNaN(v));
-  if (values.length === 0)
-    return { mean: '-', avg: '-', min: '-', max: '-', outsideSpec: '-', missing: '100%', outOfRangeCount: 0, inRangeCount: 0 };
+  // sanity check is done
 
-  const mean = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
-  const avg = mean; // For clarity, show avg as same as mean
+  if (values.length === 0)
+    return { avg: '-', min: '-', max: '-', outsideSpec: '-', missing: '100%', outOfRangeCount: 0, inRangeCount: 0 };
+
+  // Only calculate avg, min, max using non-missing values
+  const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
   const min = Math.min(...values).toFixed(2);
   const max = Math.max(...values).toFixed(2);
 
@@ -65,7 +67,7 @@ function getColumnStats(data, key, limit) {
   const outsideSpec = data.length > 0 ? ((outOfRangeCount / data.length) * 100).toFixed(0) + ' %' : '-';
   const missing = data.length > 0 ? (((data.length - values.length) / data.length) * 100).toFixed(0) + ' %' : '-';
 
-  return { mean, avg, min, max, outsideSpec, missing, outOfRangeCount, inRangeCount };
+  return { avg, min, max, outsideSpec, missing, outOfRangeCount, inRangeCount };
 }
 
 // getPieData: Prepares data for the pie chart legend and chart.
@@ -109,9 +111,9 @@ function CustomTooltip({ active, payload, stats, col }) {
     return (
       <div className="custom-tooltip">
         <div className="tooltip-title">{col.toUpperCase()}</div>
-        <div className="tooltip-item"><span style={{color:PIE_COLORS[0]}}><b>In Range:</b></span> {stats.inRangeCount} ({percent(stats.inRangeCount)})</div>
-        <div className="tooltip-item"><span style={{color:PIE_COLORS[1]}}><b>Out of Spec:</b></span> {stats.outOfRangeCount} ({percent(stats.outOfRangeCount)})</div>
-        <div className="tooltip-item"><span style={{color:PIE_COLORS[2]}}><b>Missing:</b></span> {missingCount} ({percent(missingCount)})</div>
+        <div className="tooltip-item"><span style={{ color: PIE_COLORS[0] }}><b>In Range:</b></span> {stats.inRangeCount} ({percent(stats.inRangeCount)})</div>
+        <div className="tooltip-item"><span style={{ color: PIE_COLORS[1] }}><b>Out of Spec:</b></span> {stats.outOfRangeCount} ({percent(stats.outOfRangeCount)})</div>
+        <div className="tooltip-item"><span style={{ color: PIE_COLORS[2] }}><b>Missing:</b></span> {missingCount} ({percent(missingCount)})</div>
       </div>
     );
   }
@@ -151,7 +153,7 @@ export default function SummaryDashboard() {
             setLoading(false);
             return;
           }
-        } catch {}
+        } catch { }
       }
     }
     // If no cache, fetch from API
@@ -232,11 +234,11 @@ export default function SummaryDashboard() {
   }
 
   async function exportPNG() {
-    const main = document.querySelector('.summary-grid');
+    const main = document.querySelector('.summary-dashboard-description');
     if (!main) return;
     const canvas = await html2canvas(main, { backgroundColor: null });
     const link = document.createElement('a');
-    
+
     const date = new Date();
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -248,13 +250,13 @@ export default function SummaryDashboard() {
   }
 
   async function exportPDF() {
-    const main = document.querySelector('.summary-grid');
+    const main = document.querySelector('.summary-dashboard-description');
     if (!main) return;
     const canvas = await html2canvas(main, { backgroundColor: '#fff' });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    
+
     const date = new Date();
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -264,7 +266,7 @@ export default function SummaryDashboard() {
   }
 
   // Filter data by date range and selected column (metric)
-  // FIX: Always filter only by date, not by column value presence, so missing data is included in pie chart
+  // FIX: Only filter when both from and to are set, so missing data is included in pie chart
   const filteredData = data.filter((row) => {
     if (!row.timestamp) return false;
     const t = new Date(row.timestamp).getTime();
@@ -274,12 +276,26 @@ export default function SummaryDashboard() {
       const to = new Date(dateRange.to).getTime();
       inDateRange = t >= from && t <= to;
     }
-    if ((dateRange.from && !dateRange.to) || (!dateRange.from && dateRange.to)) {
-      inDateRange = false;
-    }
+    // If only one of from/to is set, do not filter by date
     // Do NOT filter by column value here, so missing data is included in pie chart
     return inDateRange;
   });
+
+  // Calculate time range for filteredData
+  let minTime = null, maxTime = null;
+  if (filteredData.length > 0) {
+    // Find true min and max timestamps in filteredData
+    const timestamps = filteredData
+      .map(row => new Date(row.timestamp).getTime())
+      .filter(Boolean)
+      .sort((a, b) => a - b);
+    if (timestamps.length) {
+      minTime = new Date(timestamps[0]).toISOString();
+      maxTime = new Date(timestamps[timestamps.length - 1]).toISOString();
+    }
+  }
+
+
 
   const COLUMN_LABELS = Object.keys(data[0] || {})
     .filter(k => k !== "timestamp" && k !== "factory" && k !== "id" && k !== "topic_id")
@@ -290,7 +306,7 @@ export default function SummaryDashboard() {
 
   const columns = Object.keys(data[0] || {})
     .filter(key => key !== "timestamp" && key !== "factory" && key !== "id" && key !== "topic_id" && (!filterColumn || key === filterColumn)
-  );
+    );
 
   return (
     <div className="summary-dashboard-bg">
@@ -322,88 +338,105 @@ export default function SummaryDashboard() {
             autoRefreshInterval={autoRefreshInterval}
             onAutoRefreshChange={setAutoRefreshInterval}
           />
-          <div className="summary-grid">
-            {columns.map((col, idx) => {
-              const stats = getColumnStats(filteredData, col, limits[col]);
-              const limit = limits[col];
-              const pieData = getPieData(filteredData, col, limit);
-              return (
-                <div key={col} className="summary-card">
-                  <div className="summary-card-title">{col.toUpperCase()}</div>
-                  <div className="summary-chart-container">
-                    <ResponsiveContainer width="100%" height={220}>
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={90}
-                          fill="#8884d8"
-                          paddingAngle={2}
-                          dataKey="value"
-                          isAnimationActive={true}
-                          animationDuration={900}
-                        >
-                          {pieData.map((entry, i) => (
-                            <Cell
-                              key={`cell-${i}`}
-                              fill={PIE_COLORS[i]}
-                              style={{ cursor: "pointer", transition: "filter 0.2s" }}
-                            />
-                          ))}
-                        </Pie>
+          <div className="summary-dashboard-description">
+            <div className="summary-grid">
+              {columns.map((col, idx) => {
+                const stats = getColumnStats(filteredData, col, limits[col]);
+                const limit = limits[col];
+                const pieData = getPieData(filteredData, col, limit);
+                return (
+                  <div key={col} className="summary-card">
+                    <div className="summary-card-title">{col.toUpperCase()}</div>
+                    <div className="summary-chart-container">
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={90}
+                            fill="#8884d8"
+                            paddingAngle={2}
+                            dataKey="value"
+                            isAnimationActive={true}
+                            animationDuration={900}
+                          >
+                            {pieData.map((entry, i) => (
+                              <Cell
+                                key={`cell-${i}`}
+                                fill={PIE_COLORS[i]}
+                                style={{ cursor: "pointer", transition: "filter 0.2s" }}
+                              />
+                            ))}
+                          </Pie>
 
-                        <Tooltip content={(props) => <CustomTooltip {...props} stats={stats} col={col} />} />
-                        {/* Mark out-of-range area visually on the pie chart legend */}
-                        <g className="pie-legend" transform="translate(0,200)" style={{ marginTop: 45 }}>
-                          <rect x="0" y="0" width="18" height="18" fill={PIE_COLORS[0]} />
-                          <text x="24" y="14" fontSize="14">Matched</text>
-                          <rect x="90" y="0" width="18" height="18" fill={PIE_COLORS[1]} />
-                          <text x="114" y="14" fontSize="14">Outside Range</text>
-                          <rect x="220" y="0" width="18" height="18" fill={PIE_COLORS[2]} />
-                          <text x="245" y="14" fontSize="14">Missing</text>
-                        </g>
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* Add always-visible summary of pie chart stats for export */}
-                  <div className="summary-pie-stats" style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    gap: 16,
-                    margin: '8px 0 0 0',
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}>
-                    <span style={{ color: PIE_COLORS[0] }}>
-                      In Range: {stats.inRangeCount} ({filteredData.length > 0 ? ((stats.inRangeCount / filteredData.length) * 100).toFixed(1) : '0'}%)
-                    </span>
-                    <span style={{ color: PIE_COLORS[1] }}>
-                      Out of Spec: {stats.outOfRangeCount} ({filteredData.length > 0 ? ((stats.outOfRangeCount / filteredData.length) * 100).toFixed(1) : '0'}%)
-                    </span>
-                    <span style={{ color: PIE_COLORS[2] }}>
-                      Missing: {pieData[2].value} ({filteredData.length > 0 ? ((pieData[2].value / filteredData.length) * 100).toFixed(1) : '0'}%)
-                    </span>
-                  </div>
-                  <div className="summary-stats">
-                    {/* <div><b>Matched (In Range):</b> {stats.inRangeCount}</div>
+                          <Tooltip content={(props) => <CustomTooltip {...props} stats={stats} col={col} />} />
+                          {/* Mark out-of-range area visually on the pie chart legend */}
+                          <g className="pie-legend" transform="translate(0,200)" style={{ marginTop: 45 }}>
+                            <rect x="0" y="0" width="18" height="18" fill={PIE_COLORS[0]} />
+                            <text x="24" y="14" fontSize="14">Matched</text>
+                            <rect x="90" y="0" width="18" height="18" fill={PIE_COLORS[1]} />
+                            <text x="114" y="14" fontSize="14">Outside Range</text>
+                            <rect x="220" y="0" width="18" height="18" fill={PIE_COLORS[2]} />
+                            <text x="245" y="14" fontSize="14">Missing</text>
+                          </g>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Add always-visible summary of pie chart stats for export */}
+                    <div className="summary-pie-stats" style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: 16,
+                      margin: '8px 0 0 0',
+                      fontSize: 14,
+                      fontWeight: 500,
+                    }}>
+                      <span style={{ color: PIE_COLORS[0] }}>
+                        In Range: {stats.inRangeCount} ({filteredData.length > 0 ? ((stats.inRangeCount / filteredData.length) * 100).toFixed(1) : '0'}%)
+                      </span>
+                      <span style={{ color: PIE_COLORS[1] }}>
+                        Out of Spec: {stats.outOfRangeCount} ({filteredData.length > 0 ? ((stats.outOfRangeCount / filteredData.length) * 100).toFixed(1) : '0'}%)
+                      </span>
+                      <span style={{ color: PIE_COLORS[2] }}>
+                        Missing: {pieData[2].value} ({filteredData.length > 0 ? ((pieData[2].value / filteredData.length) * 100).toFixed(1) : '0'}%)
+                      </span>
+                    </div>
+                    <div className="summary-stats">
+                      {/* <div><b>Matched (In Range):</b> {stats.inRangeCount}</div>
                     <div><b>Outside Range:</b> {stats.outOfRangeCount}</div>
                     <div><b>Missing:</b> {pieData[2].value}</div> */}
-                    <div><b>Mean:</b> {stats.mean}</div>
-                    <div><b>Avg:</b> {stats.avg}</div>
-                    <div><b>Min:</b> {stats.min}</div>
-                    <div><b>Max:</b> {stats.max}</div>
-                    {limit && (
-                      <>
-                        <div><b>Limit Min:</b> {limit.min}</div>
-                        <div><b>Limit Max:</b> {limit.max}</div>
-                      </>
-                    )}
+                      {/* Remove Mean, keep only Avg */}
+                      <div><b>Avg:</b> {stats.avg}</div>
+                      <div><b>Min:</b> {stats.min}</div>
+                      <div><b>Max:</b> {stats.max}</div>
+                      {limit && (
+                        <>
+                          <div><b>Limit Min:</b> {limit.min}</div>
+                          <div><b>Limit Max:</b> {limit.max}</div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Show time range above the grid, always visible for export */}
+            {minTime && maxTime && (
+              <div style={{
+                textAlign: 'center',
+                fontSize: 16,
+                color: '#4f3ca7',
+                fontWeight: 600,
+                margin: '12px 0 8px 0',
+                letterSpacing: 0.2,
+
+              }}>
+                Data Time Range: <span style={{ color: '#222', fontWeight: 700, }}>{new Date(minTime).toLocaleString()} — {new Date(maxTime).toLocaleString()}</span>
+              </div>
+            )}
           </div>
         </>
       )}
