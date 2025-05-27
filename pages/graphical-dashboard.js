@@ -351,48 +351,7 @@ export default function GraphicalDashboard() {
         </div>
       );
     }
-    if (metric === "tss") {
-      return (
-        <div key={metric} className="card">
-          <div className="card-title">{label}</div>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart
-              data={displayData}
-              margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} minTickGap={8} tickFormatter={timeTickFormatter} />
-              <YAxis domain={yDomain} />
-              <Tooltip />
-              <Legend />
-              {limit && (
-                <ReferenceLine
-                  y={limit.max}
-                  label="Upper"
-                  stroke="#222"
-                  strokeDasharray="3 3"
-                />
-              )}
-              {limit && (
-                <ReferenceLine
-                  y={limit.min}
-                  label="Lower"
-                  stroke="#222"
-                  strokeDasharray="3 3"
-                />
-              )}
-              <Bar dataKey={metric} fill={color} />
-              <Brush
-                dataKey="timestamp"
-                height={20}
-                stroke={color}
-                tickFormatter={brushTickFormatter}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      );
-    }
+
 
     // Default: LineChart
     return (
