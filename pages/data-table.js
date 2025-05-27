@@ -31,6 +31,7 @@ export default function DataTable() {
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(0); // seconds
   const [filterApplied, setFilterApplied] = useState(false);
   const [limits, setLimits] = useState({});
+  const [exportCount, setExportCount] = useState(PAGE_SIZE); // New state for export count
   const autoRefreshTimer = useRef(null);
 
   // Fetches paginated data from the backend API, applying date filters if provided.
@@ -92,40 +93,109 @@ export default function DataTable() {
     fetchData(dateRange);
   }
 
-  // ControlBar props (date picker enabled)
-  const controlBarProps = {
-    exportOpen,
-    setExportOpen,
-    // Exports current data as CSV using utility
-    exportCSV: () => exportCSV(data),
-    // Exports current data as JSON
-    exportJSON: () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+  // Helper to get the max exportable count (from API count)
+  const maxExportCount = count;
+
+  // Sync exportCount and maxExportCount to window for ControlBar export modal
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.exportCount = exportCount;
+      window.maxExportCount = maxExportCount;
+    }
+  }, [exportCount, maxExportCount]);
+
+  // Get factory name from cookie (client-side only)
+  const [factory, setFactory] = useState('');
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(/(?:^|; )factory=([^;]*)/);
+      if (match) {
+        setFactory(decodeURIComponent(match[1]));
+      }
+    }
+  }, []);
+
+  // Export as CSV with user-selected count and date filter
+  const handleExportCSV = async () => {
+    let countToExport = exportCount;
+    if (typeof window !== 'undefined' && window.exportCount) countToExport = window.exportCount;
+    const limit = Math.min(countToExport, maxExportCount);
+    let url = `${API_DATA_ROUTE}?limit=${limit}&offset=0`;
+    if (dateRange && (dateRange.from || dateRange.to)) {
+      const params = [];
+      if (dateRange.from) params.push(`timestamp_from=${encodeURIComponent(dateRange.from)}`);
+      if (dateRange.to) params.push(`timestamp_to=${encodeURIComponent(dateRange.to)}`);
+      url += `&${params.join('&')}`;
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const json = await res.json();
+      const exportData = Array.isArray(json.results) ? json.results : [];
+      // Attach factory name to file
+      const safeFactory = factory ? factory.replace(/[^a-zA-Z0-9_-]+/g, '_') : 'factory';
+      const fileName = `data-table-${safeFactory}.csv`;
+      exportCSV(exportData, fileName);
+    } catch (err) {
+      // Optionally show error
+    }
+  };
+
+  // Export as JSON with user-selected count and date filter
+  const handleExportJSON = async () => {
+    let countToExport = exportCount;
+    if (typeof window !== 'undefined' && window.exportCount) countToExport = window.exportCount;
+    const limit = Math.min(countToExport, maxExportCount);
+    let url = `${API_DATA_ROUTE}?limit=${limit}&offset=0`;
+    if (dateRange && (dateRange.from || dateRange.to)) {
+      const params = [];
+      if (dateRange.from) params.push(`timestamp_from=${encodeURIComponent(dateRange.from)}`);
+      if (dateRange.to) params.push(`timestamp_to=${encodeURIComponent(dateRange.to)}`);
+      url += `&${params.join('&')}`;
+    }
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      const json = await res.json();
+      const exportData = Array.isArray(json.results) ? json.results : [];
+      const safeFactory = factory ? factory.replace(/[^a-zA-Z0-9_-]+/g, '_') : 'factory';
+      const fileName = `data-table-${safeFactory}.json`;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "data-table.json");
+      downloadAnchorNode.setAttribute("download", fileName);
       document.body.appendChild(downloadAnchorNode);
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
-    },
+    } catch (err) {
+      // Optionally show error
+    }
+  };
+
+  // Pass exportCount and setExportCount to ControlBar for controlled input
+  const controlBarProps = {
+    exportOpen,
+    setExportOpen,
+    exportCSV: handleExportCSV,
+    exportJSON: handleExportJSON,
     dateRange,
-    // Handles changes to the date filter inputs
     handleDateChange: (e) => {
       const { name, value } = e.target;
       setDateRange(prev => ({ ...prev, [name]: value }));
     },
     onDateFilterApply: handleDateFilterApply,
     filterMetric: '',
-    setFilterMetric: () => {},
+    setFilterMetric: () => { },
     COLUMN_LABELS: {},
     handleRefresh: () => {
-      setFilterApplied(false); // Reset filter so fetchData will run
-      setPage(1); // Optionally reset to first page
-      fetchData(); // Explicitly fetch data
+      setFilterApplied(false);
+      setPage(1);
+      fetchData();
     },
     loading,
     autoRefreshInterval,
     onAutoRefreshChange: setAutoRefreshInterval,
+    exportCount, // NEW: pass exportCount
+    setExportCount, // NEW: pass setExportCount
+    maxExportCount, // NEW: pass maxExportCount
   };
 
   function handlePageChange(newPage) {

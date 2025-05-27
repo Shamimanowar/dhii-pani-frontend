@@ -11,14 +11,17 @@ const ControlBar = ({
   dateRange,
   fullRange,
   handleDateChange,
-  onDateFilterApply = () => {},
+  onDateFilterApply = () => { },
   filterMetric,
   setFilterMetric,
   COLUMN_LABELS,
   handleRefresh,
   loading,
   autoRefreshInterval = 0,
-  onAutoRefreshChange = () => {},
+  onAutoRefreshChange = () => { },
+  exportCount, // NEW: controlled export count
+  setExportCount, // NEW: controlled setter
+  maxExportCount, // NEW: max export count
 }) => {
   // Detect if exportCSV or exportJSON are undefined (for dashboards)
   const isImageExport = !exportJSON;
@@ -39,6 +42,27 @@ const ControlBar = ({
           </button>
           {exportOpen && (
             <div className="control-bar-export-dropdown">
+              {/* Export count input for data-table only (show if exportCSV and exportJSON are present) */}
+              {exportCSV && exportJSON && exportCount !== undefined && setExportCount && maxExportCount !== undefined && (
+                <div style={{ padding: '10px 18px 0 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label htmlFor="export-count" style={{ fontWeight: 500, fontSize: 15 }}>Export Count:</label>
+                  <input
+                    id="export-count"
+                    type="number"
+                    min={1}
+                    max={maxExportCount}
+                    value={exportCount}
+                    onChange={e => {
+                      let val = parseInt(e.target.value, 10);
+                      if (isNaN(val) || val < 1) val = 1;
+                      if (val > maxExportCount) val = maxExportCount;
+                      setExportCount(val);
+                    }}
+                    style={{ width: 90, padding: 4, fontSize: 15, borderRadius: 6, border: '1.5px solid #ececff' }}
+                  />
+                  <span style={{ color: '#888', fontSize: 13 }}>(max: {maxExportCount})</span>
+                </div>
+              )}
               {isImageExport ? (
                 <button
                   className="control-bar-export-item"
