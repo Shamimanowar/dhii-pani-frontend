@@ -1,7 +1,9 @@
 
 services:
   nextjs:
-    build: ./Dockerfile.prod  # Use the production Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile.prod  # Use the production Dockerfile
     container_name: dhii-pani-frontend
     ports:
       - "3000:3000"

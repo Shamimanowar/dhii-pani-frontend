@@ -18,10 +18,9 @@ export default async function handler(req, res) {
         }),
       });
 
-      
+
 
       const data = await response.json();
-      console.log("-- response ", response)
       if (!response.ok) {
         throw new Error(data.detail || "Login failed");
       }
@@ -47,13 +46,13 @@ export default async function handler(req, res) {
       ]);
       console.log("ENVIRONMENT", process.env?.NODE_ENV)
 
-      
+
       res.status(200).json({ message: "Login successful" });
     } catch (error) {
-      res.status(401).json({ error: `Authentication failed -- ${url}`});
+      res.status(401).json({ error: `Authentication failed -- ${url}` });
     }
   }
-    else if (req.method === "DELETE") {
+  else if (req.method === "DELETE") {
     // Logout: Clear cookies
     res.setHeader("Set-Cookie", [
       cookie.serialize("accessToken", "", {
@@ -71,7 +70,7 @@ export default async function handler(req, res) {
     ]);
     res.status(200).json({ message: "Logged out successfully" });
 
-    }
+  }
 
   else {
     res.status(405).json({ error: "Method Not Allowed" });

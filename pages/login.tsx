@@ -2,6 +2,19 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import '../css/login.css';
+import * as cookie from "cookie";
+
+export async function getServerSideProps(context) {
+  const cookies = cookie.parse(context.req.headers.cookie || "");
+  const accessToken = cookies.accessToken || null;
+  // If already logged in, redirect to data-table
+  if (accessToken) {
+    return {
+      redirect: { destination: "/data-table", permanent: false },
+    };
+  }
+  return { props: {} };
+}
 
 export default function Login() {
   const router = useRouter();
