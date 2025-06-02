@@ -237,7 +237,7 @@ export default function GraphicalDashboard() {
 
   // Export helpers
   async function exportPNG() {
-    const main = document.querySelector('.graphical-dashboard-main');
+    const main = document.querySelector('.graphical-dashboard-download-body');
     if (!main) return;
     const canvas = await html2canvas(main, { backgroundColor: null });
     const link = document.createElement('a');
@@ -253,7 +253,7 @@ export default function GraphicalDashboard() {
   }
 
   async function exportPDF() {
-    const main = document.querySelector('.graphical-dashboard-main');
+    const main = document.querySelector('.graphical-dashboard-download-body');
     if (!main) return;
     const canvas = await html2canvas(main, { backgroundColor: '#fff' });
     const imgData = canvas.toDataURL('image/png');
@@ -431,9 +431,38 @@ export default function GraphicalDashboard() {
       />
       {/* Main caller */}
       {mounted && (
-        <div className={`graphical-dashboard-main${isSingleMetric ? ' single-metric' : ''}`}>
-          {metrics.map((metric, idx) => renderChart(metric, idx))}
+        <div className="graphical-dashboard-download-body">
+          <div className={`graphical-dashboard-main${isSingleMetric ? ' single-metric' : ''}`}>
+            {metrics.map((metric, idx) => renderChart(metric, idx))}
+          </div>
+          {/* Show time range for the data displayed */}
+          {Array.isArray(data) && data.length > 0 && (() => {
+            // Find true min and max timestamps in data
+            const timestamps = data
+              .map(row => new Date(row.timestamp).getTime())
+              .filter(Boolean)
+              .sort((a, b) => a - b);
+            if (timestamps.length) {
+              const minTime = new Date(timestamps[0]).toLocaleString();
+              const maxTime = new Date(timestamps[timestamps.length - 1]).toLocaleString();
+              return (
+                <div style={{
+                  textAlign: 'center',
+                  fontSize: 16,
+                  color: '#4f3ca7',
+                  fontWeight: 600,
+                  margin: '12px 0 8px 0',
+                  letterSpacing: 0.2,
+                }}>
+                  Data Time Range: <span style={{ color: '#1f3ca7', fontWeight: 700 }}>{minTime} — {maxTime}</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
+
+
       )}
       {!data.length && (
         <div className="no-data-message">
@@ -445,7 +474,7 @@ export default function GraphicalDashboard() {
 
       {/* Show total number of data points used for pie charts */}
       <div style={{
-        marginTop: 32,
+        marginTop: 12,
         textAlign: 'center',
         fontSize: 18,
         color: '#345995',

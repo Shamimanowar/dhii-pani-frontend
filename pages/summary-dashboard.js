@@ -434,7 +434,7 @@ export default function SummaryDashboard() {
                 letterSpacing: 0.2,
 
               }}>
-                Data Time Range: <span style={{ color: '#222', fontWeight: 700, }}>{new Date(minTime).toLocaleString()} — {new Date(maxTime).toLocaleString()}</span>
+                Data Time Range: <span style={{ color: '#1f3ca7', fontWeight: 700, }}>{new Date(minTime).toLocaleString()} — {new Date(maxTime).toLocaleString()}</span>
               </div>
             )}
           </div>
