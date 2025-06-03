@@ -250,7 +250,7 @@ export default function DataTable() {
                 <th className="data-table-th">TEMPERATURE{limits.temperature && <span className="data-table-th-range">{`(${limits.temperature.min} - ${limits.temperature.max}) (°C)`}</span>}</th>
                 <th className="data-table-th">BOD{limits.bod && <span className="data-table-th-range">{`(${limits.bod.min} - ${limits.bod.max}) mg/L`}</span>}</th>
                 <th className="data-table-th">COD{limits.cod && <span className="data-table-th-range">{`(${limits.cod.min} - ${limits.cod.max}) mg/L`}</span>}</th>
-                <th className="data-table-th">PH{limits.ph && <span className="data-table-th-range">{`(${limits.ph.min} - ${limits.ph.max})`}</span>}</th>
+                <th className="data-table-th">pH{limits.ph && <span className="data-table-th-range">{`(${limits.ph.min} - ${limits.ph.max})`}</span>}</th>
                 <th className="data-table-th">TDS{limits.tds && <span className="data-table-th-range">{`(${limits.tds.min} - ${limits.tds.max}) mg/L`}</span>}</th>
                 <th className="data-table-th">DO{limits.do && <span className="data-table-th-range">{`(${limits.do.min} - ${limits.do.max}) mg/L`}</span>}</th>
                 <th className="data-table-th">COLOR{limits.color && <span className="data-table-th-range">{`(${limits.color.min} - ${limits.color.max}) Pt.Co`}</span>}</th>
