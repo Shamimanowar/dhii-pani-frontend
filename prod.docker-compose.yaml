@@ -10,8 +10,8 @@ services:
     env_file:
       - ./.env
     restart: always
-    # volumes:
-    #   - ./:/app
+    volumes:
+      - ./:/app
     networks:
       - dhi-pani_shared_network  # Connect to the common network
 

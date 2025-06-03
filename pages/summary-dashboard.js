@@ -340,13 +340,13 @@ export default function SummaryDashboard() {
           />
           <div className="summary-dashboard-description">
             <div className="summary-grid">
-              {columns.map((col, idx) => {
+              {columns.slice(0, 8).map((col, idx) => {
                 const stats = getColumnStats(filteredData, col, limits[col]);
                 const limit = limits[col];
                 const pieData = getPieData(filteredData, col, limit);
                 return (
                   <div key={col} className="summary-card">
-                    <div className="summary-card-title">{col.toUpperCase()}</div>
+                    <div className="summary-card-title">{col == 'ph' ? "pH" : col.toUpperCase()}</div>
                     <div className="summary-chart-container">
                       <ResponsiveContainer width="100%" height={220}>
                         <PieChart>
