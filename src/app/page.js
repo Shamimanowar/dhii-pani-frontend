@@ -1,10 +1,147 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import "../../css/app-page.css";
 
 export default function Home() {
+  useEffect(() => {
+    // Developer Console Signature
+    console.clear();
+    console.log('%c🚀 DHII Pani Environmental Monitoring System', 'color: #4CAF50; font-size: 20px; font-weight: bold; background: #E8F5E8; padding: 10px; border-radius: 5px;');
+    console.log('%c💻 Developed by: Shamim Anowar', 'color: #2196F3; font-size: 16px; font-weight: bold;');
+    console.log('%c📧 Email: shamim.hire@gmail.com', 'color: #FF9800; font-size: 14px; font-weight: bold;');
+    console.log('%c📱 Phone: +880 1612 879888', 'color: #9C27B0; font-size: 14px; font-weight: bold;');
+    console.log('%c🌐 Portfolio: https://shm-port.netlify.app/', 'color: #607D8B; font-size: 14px; font-weight: bold;');
+    console.log('%c💼 LinkedIn: https://www.linkedin.com/in/shamimanowar/', 'color: #0077B5; font-size: 14px; font-weight: bold;');
+    console.log('%c🐙 GitHub: https://github.com/Shamimanowar', 'color: #333; font-size: 14px; font-weight: bold;');
+    console.log('%c🏆 Specialized in: IoT Solutions, Environmental Tech, Full-Stack Development', 'color: #795548; font-size: 12px;');
+    console.log('%c📅 Project Year: 2024-2025', 'color: #E91E63; font-size: 12px;');
+    console.log('%c💡 Type "developer.verify()" for detailed verification', 'color: #00BCD4; font-size: 14px; font-style: italic;');
+
+    // Global Developer Object
+    window.developer = {
+      name: "Shamim Anowar",
+      email: "shamim.hire@gmail.com", 
+      phone: "+880 1612 879888",
+      portfolio: "https://shm-port.netlify.app/",
+      linkedin: "https://www.linkedin.com/in/shamimanowar/",
+      github: "https://github.com/Shamimanowar",
+      project: "DHII Pani - Environmental Monitoring System",
+      client: "Department of Environment (DoE), Bangladesh",
+      year: "2024-2025",
+      expertise: [
+        "IoT Solutions", 
+        "Environmental Technology", 
+        "Full-Stack Development",
+        "Software Engineering",
+        "DevOps",
+        "AWS Cloud Services, Azure, DigitalOcean",
+        "AI/ML Solutions", 
+        "Database Design", 
+        "API Development",
+        "React/Next.js",
+        "PostgreSQL",
+        "MQTT/TCP Protocols"
+      ],
+      technologies: [
+        "Next.js 15", 
+        "React 19", 
+        "PostgreSQL", 
+        "Node.js", 
+        "IoT Sensors",
+        "MQTT Protocol",
+        "Recharts",
+        "HTML2Canvas",
+        "jsPDF"
+      ],
+      verify: function() {
+        console.clear();
+        console.log('%c✅ DEVELOPER VERIFICATION SUCCESSFUL', 'color: #FFFFFF; font-size: 20px; font-weight: bold; background: #4CAF50; padding: 15px; border-radius: 10px;');
+        console.log('%c', 'font-size: 10px;');
+        console.log('%c👨‍💻 DEVELOPER INFORMATION', 'color: #2196F3; font-size: 18px; font-weight: bold; text-decoration: underline;');
+        console.log('%c📝 Name: ' + this.name, 'color: #333; font-size: 16px; font-weight: bold;');
+        console.log('%c📧 Email: ' + this.email, 'color: #FF9800; font-size: 16px; font-weight: bold;');
+        console.log('%c📱 Phone: ' + this.phone, 'color: #9C27B0; font-size: 16px; font-weight: bold;');
+        console.log('%c🌐 Portfolio: ' + this.portfolio, 'color: #607D8B; font-size: 16px; font-weight: bold;');
+        console.log('%c💼 LinkedIn: ' + this.linkedin, 'color: #0077B5; font-size: 16px; font-weight: bold;');
+        console.log('%c🐙 GitHub: ' + this.github, 'color: #333; font-size: 16px; font-weight: bold;');
+        console.log('%c', 'font-size: 10px;');
+        console.log('%c🏗️ PROJECT DETAILS', 'color: #795548; font-size: 18px; font-weight: bold; text-decoration: underline;');
+        console.log('%c🎯 Project: ' + this.project, 'color: #333; font-size: 16px; font-weight: bold;');
+        console.log('%c🏢 Client: ' + this.client, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('%c📅 Year: ' + this.year, 'color: #E91E63; font-size: 16px; font-weight: bold;');
+        console.log('%c', 'font-size: 10px;');
+        console.log('%c🚀 EXPERTISE', 'color: #00BCD4; font-size: 18px; font-weight: bold; text-decoration: underline;');
+        this.expertise.forEach(skill => {
+          console.log('%c✓ ' + skill, 'color: #4CAF50; font-size: 14px;');
+        });
+        console.log('%c', 'font-size: 10px;');
+        console.log('%c🛠️ TECHNOLOGIES USED', 'color: #FF5722; font-size: 18px; font-weight: bold; text-decoration: underline;');
+        this.technologies.forEach(tech => {
+          console.log('%c⚡ ' + tech, 'color: #2196F3; font-size: 14px;');
+        });
+        console.log('%c', 'font-size: 10px;');
+        console.log('%c🎉 Want to hire me for your next project?', 'color: #FFFFFF; font-size: 16px; font-weight: bold; background: #FF9800; padding: 10px; border-radius: 5px;');
+        console.log('%c📧 Contact: shamim.hire@gmail.com | 📱 +880 1612 879888', 'color: #333; font-size: 14px; font-weight: bold;');
+        console.log('%c💼 LinkedIn: https://www.linkedin.com/in/shamimanowar/ | 🐙 GitHub: https://github.com/Shamimanowar', 'color: #333; font-size: 14px; font-weight: bold;');
+        
+        return {
+          message: "✅ Developer verification completed!",
+          developer: this.name,
+          contact: this.email,
+          phone: this.phone,
+          portfolio: this.portfolio,
+          linkedin: this.linkedin,
+          github: this.github
+        };
+      },
+      contact: function() {
+        window.open('mailto:' + this.email + '?subject=Project Inquiry - DHII Pani System&body=Hello Shamim,%0D%0A%0D%0AI saw your work on the DHII Pani Environmental Monitoring System and would like to discuss a project.%0D%0A%0D%0ABest regards,');
+      },
+      portfolio: function() {
+        window.open(this.portfolio, '_blank');
+      },
+      linkedin: function() {
+        window.open(this.linkedin, '_blank');
+      },
+      github: function() {
+        window.open(this.github, '_blank');
+      }
+    };
+
+    // Additional global aliases
+    window.shamim = window.developer;
+    window.dev = window.developer;
+    
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#f7fafc] to-[#e3e9f7] p-0">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#f7fafc] to-[#e3e9f7] p-0"
+      onDoubleClick={(e) => {
+        if (e.ctrlKey && e.shiftKey) {
+          alert(
+            "🚀 DHII Pani System\n💻 Developed by: Shamim Anowar\n📧 shamim.hire@gmail.com\n📱 +880 1612 879888\n🌐 Portfolio: https://shm-port.netlify.app/\n💼 LinkedIn: https://www.linkedin.com/in/shamimanowar/\n🐙 GitHub: https://github.com/Shamimanowar\n\n✨ Secret Easter Egg Activated!\n\n💡 Open Console (F12) and type 'developer.verify()' for full verification!"
+          );
+        }
+      }}
+      data-developer="Shamim Anowar"
+      data-developer-email="shamim.hire@gmail.com" 
+      data-developer-phone="+880 1612 879888"
+      data-developer-portfolio="https://shm-port.netlify.app/"
+      data-developer-linkedin="https://www.linkedin.com/in/shamimanowar/"
+      data-developer-github="https://github.com/Shamimanowar"
+      data-project="DHII Pani Environmental Monitoring System"
+      data-client="Department of Environment Bangladesh"
+      data-year="2024-2025"
+      data-easter-egg="Ctrl+Shift+DoubleClick for developer info"
+    >
+      {/* Hidden developer signature for HTML inspection */}
+      <div style={{ display: 'none' }} id="developer-signature">
+        Developed by Shamim Anowar | shamim.hire@gmail.com | +880 1612 879888 | Portfolio: https://shm-port.netlify.app/ | LinkedIn: https://www.linkedin.com/in/shamimanowar/ | GitHub: https://github.com/Shamimanowar | Project: DHII Pani Environmental Monitoring System
+      </div>
       <div className="flex flex-col md:flex-row w-full max-w-5xl bg-white/80 rounded-2xl shadow-xl overflow-hidden mt-16 mb-8">
         {/* Left Side: About & Articles */}
         <div className="flex-1 p-8 md:p-12 flex flex-col justify-between">
