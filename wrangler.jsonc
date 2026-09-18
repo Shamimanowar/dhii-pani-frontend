@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dhii-pani-frontend",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+  "workers_dev": true,
+  // Non-secret runtime config. API_URL is read by pages/api/* at request time
+  // (NOT inlined at build), so the same build works in preview and prod.
+  "vars": {
+    "API_URL": "https://api-dhii.grnmfg.com/v1/core",
+    "NEXT_PUBLIC_APP_URL": "https://dhii.grnmfg.com"
+  }
+  ,
+  // grnmfg.com zone confirmed in this account (feea3bc7…) on 2026-09-17.
+  "routes": [{ "pattern": "dhii.grnmfg.com", "custom_domain": true }]
+}
