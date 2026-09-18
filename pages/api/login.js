@@ -1,13 +1,13 @@
 import * as cookie from "cookie";
 
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || 'http://app:8000/v1/core';
+import { getApiBase } from "../../lib/apiBase";
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
       const { phone, password } = req.body;
-      let url = API_ENDPOINT + "/auth/jwt/create/"
-      const response = await fetch(url, {
+      const loginUrl = getApiBase() + "/auth/jwt/create/";
+      const response = await fetch(loginUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
 
       res.status(200).json({ message: "Login successful" });
     } catch (error) {
-      res.status(401).json({ error: `Authentication failed -- ${url}` });
+      res.status(401).json({ error: `Authentication failed - ${error.message || "Login failed"}` });
     }
   }
   else if (req.method === "DELETE") {

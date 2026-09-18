@@ -1,7 +1,6 @@
 import * as cookie from "cookie";
 
-// Use environment variable for backend API endpoint
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL || 'http://app:8000/v1/core';
+import { getApiBase } from "../../lib/apiBase";
 
 export default async function handler(req, res) {
   // Get accessToken from cookies (server-side, httpOnly is fine)
@@ -11,7 +10,7 @@ export default async function handler(req, res) {
   // Forward all query params (including timestamp_from, timestamp_to, etc)
   const params = new URLSearchParams(req.query).toString();
   // Use env-based endpoint
-  const url = `${API_ENDPOINT}/sensor_data/?${params}`;
+  const url = `${getApiBase()}/sensor_data/?${params}`;
 
   try {
     const apiRes = await fetch(url, {
